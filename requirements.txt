@@ -1,0 +1,9 @@
+dash
+dash-bootstrap-components
+dash-iconify
+dash-mantine-components
+datetime
+flask-caching
+mod-wsgi
+polars[connectorx, pandas]
+redis
