@@ -4,6 +4,15 @@
  </a>
 </h1>
 
+This project is a web app built with Plotly Dash. It makes GET requests through the APIs provided by
+US government agencies who publish economic and financial data. This is done using the requests library in Python.
+This data is then processed with Polars (a faster, more memory efficient alternative to Pandas) and checked
+for cleanliness.
+
+The user can then interact with a PostgreSQL database, with raw SQL statements being executed on the backend via psycopg3. Firstly, they can create a new table to insert the economic data into with the freedom to specify
+certain table conditions, or alternatively insert into an existing table. The user can also interact with
+existing tables, efficiently loading them into DataFrames with ConnectorX, and verifying that they are free from duplicate values, NaN values, etc. They can choose to clean the data and override the existing tables data.
+
 <h1>Core Dependencies</h1>
 
 The core dependencies are:
@@ -13,12 +22,19 @@ The core dependencies are:
  <li>Python libraries in requirements.txt</li>
 </ol>
 
+Note that the requirements.txt file will install psycopg[binary] to reduce overhead. However, it's recommended
+that you install psycopg "locally" to ensure system upgradability. Additionally, doing so will install a C-based
+module for improved performance. For the system requirements see:
+<a href=https://www.psycopg.org/psycopg3/docs/basic/install.html>
+psycopg installation</a>
+
 <h2>Cloning This Repository</h2>
 
 To run this app locally you can simply clone this repository. Make sure you have
 <a href="https://git-scm.com/book/en/v2/Getting-Started-Installing-Git">
 git installed</a>.
-You can confirm this on Linux or Mac by typing `git --version` in a terminal. Navigate to the directory you want the app in and use the command:
+You can confirm this on Linux or Mac by typing `git --version` in a terminal. Navigate to the directory you want
+the app in and use the command:
 
 ```shell
 git clone https://github.com/MitchMedeiros/dashapp.git

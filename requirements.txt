@@ -6,4 +6,6 @@ datetime
 flask-caching
 mod-wsgi
 polars[connectorx, pandas]
+psycopg[binary]
 redis
+requests

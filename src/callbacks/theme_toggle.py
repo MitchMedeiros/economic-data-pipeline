@@ -25,7 +25,7 @@ clientside_callback(
         var header_color = checked ? '#d5d5d5' : '#2b2b2b';
         var page_title = checked ? {'from': '#525dff', 'to': '#298dff'} : {'from': '#52b1ff', 'to': '#739dff', 'deg': 45}
 
-        return [components_color, header_color, sidebar_style, page_title];
+        return [components_color, header_color, page_title];
     }
     ''',
     Output('mantine_container', 'theme'),

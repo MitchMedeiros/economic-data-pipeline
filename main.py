@@ -51,6 +51,7 @@ app.layout = layout.create_layout()
 # Instantiate the imported callbacks. The clientside callbacks are instantiated via module import.
 # modals.modal_callbacks(app)
 # children.notification_callback(app)
+layout.make_datatable(app)
 
 # Deploys the app locally if run_locally is True.
 if __name__ == '__main__' and config.RUN_LOCALLY:
