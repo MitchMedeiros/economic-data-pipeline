@@ -35,7 +35,7 @@ page_header = dbc.Navbar(
                                     centered=True,
                                     zIndex=100,
                                     size='xl',
-                                    id='modal_4'
+                                    id='modal_1'
                                 ),
                                 dmc.Button(
                                     "About",
@@ -46,7 +46,7 @@ page_header = dbc.Navbar(
                                     compact=True,
                                     radius='xl',
                                     style={'margin-left': '50px'},
-                                    id='icon_4'
+                                    id='icon_1'
                                 )
                             ],
                             direction='horizontal',
@@ -130,8 +130,10 @@ data_area = dmc.LoadingOverlay(
                         dmc.AccordionControl(accordion_header("Request Economic Data")),
                         dmc.AccordionPanel(
                             [
+                                data_inputs.inflation_checkbox,
+                                data_inputs.seasonal_checkbox,
                                 data_inputs.date_calendar,
-                                strategy_inputs.run_backtest_button
+                                strategy_inputs.getdata_button
                             ]
                         )
                     ],
@@ -168,45 +170,6 @@ data_area = dmc.LoadingOverlay(
     radius='sm'
 )
 
-def make_datatable(app):
-    @app.callback(
-        Output('upload_output', 'children'),
-        Input('upload_input', 'contents'),
-        State('upload_input', 'filename'),
-        prevent_initial_call=True
-    )
-    def update_output(content, filename):
-        content_type, content_string = content.split(',')
-        decoded = base64.b64decode(content_string)
-
-        if 'csv' in filename:
-            df = pd.read_csv(io.StringIO(decoded.decode('utf-8')))
-        elif 'xls' in filename:
-            df = pd.read_excel(io.BytesIO(decoded))
-        else:
-            return dmc.Text('There was an error processing this file.')
-
-        return html.Div(
-            dash_table.DataTable(
-                data=df.to_dict('records'),
-                columns=[{'name': str(i), 'id': str(i)} for i in df.columns],
-                fill_width=True,
-                cell_selectable=False,
-                style_as_list_view=True,
-                style_header={
-                    'color': 'rgba(220, 220, 220, 0.95)',
-                    'padding': '10px',
-                    'fontFamily': 'Arial, sans-serif',
-                    'fontSize': '14px',
-                    'fontWeight': 'bold'
-                },
-                style_data={'color': 'rgba(220, 220, 220, 0.85)'},
-                style_cell={'fontFamily': 'Arial, sans-serif', 'fontSize': '14px'},
-                style_cell_conditional=[{'textAlign': 'center'}],
-                id='upload_table'
-            )
-        )
-
 # The app layout containing all displayed components. Provided to app.layout in main.py
 def create_layout():
     return dmc.MantineProvider(
@@ -219,36 +182,6 @@ def create_layout():
                         html.Div(id='dummy_output'),
                         html.Div(id='notification_trigger'),
                         html.Div(id='notification_output'),
-                        dmc.LoadingOverlay(
-                            [
-                                dcc.Upload(
-                                    html.Div(
-                                        [
-                                            'Drag and Drop or ',
-                                            html.A('Select a File', style={'fontWeight': 'bold'}),
-                                            ' (20MB limit)'
-                                        ]
-                                    ),
-                                    style={
-                                        'height': '80px',
-                                        'lineHeight': '75px',
-                                        'borderWidth': '1px',
-                                        'borderStyle': 'dashed',
-                                        'borderRadius': '5px',
-                                        'textAlign': 'center',
-                                        'margin': '10px'
-                                    },
-                                    style_reject={'borderColor': 'rgb(255, 20, 20)', 'backgroundColor': 'rgb(255, 20, 20)'},
-                                    max_size=20000000,
-                                    min_size=50,
-                                    id='upload_input'
-                                ),
-                                html.Div(id='upload_output')
-                            ],
-                            loaderProps={'variant': 'bars', 'color': 'indigo', 'size': 'xl'},
-                            radius='sm',
-                            style={'width': '95%', 'margin-left': 'auto', 'margin-right': 'auto'}
-                        )
                     ],
                     fluid=True,
                     className='dbc'

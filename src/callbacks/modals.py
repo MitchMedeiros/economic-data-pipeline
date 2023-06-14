@@ -2,7 +2,7 @@ from dash import Input, Output, State
 
 # Callback to create modal component popups when icons are clicked.
 def modal_callbacks(app):
-    for i in range(1, 5):
+    for i in range(1, 2):
         @app.callback(
             Output(f'modal_{i}', 'opened'),
             Input(f'icon_{i}', 'n_clicks'),

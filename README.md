@@ -4,14 +4,19 @@
  </a>
 </h1>
 
-This project is a web app built with Plotly Dash. It makes GET requests through the APIs provided by
-US government agencies who publish economic and financial data. This is done using the requests library in Python.
-This data is then processed with Polars (a faster, more memory efficient alternative to Pandas) and checked
-for cleanliness.
+This project is a web app built with Plotly Dash with the intent of being an interactive data pipeline.
+It uses publicly available second-party economic data requested directly through the REST APIs of multiple
+government agencies. These agencies include
+the US Treasury Department, Bureau of Economic Analysis (BEA), the Bureau of Labor Statistics (BLS), and the Federal
+Reserve of St. Louis who maintain the Federal Reserve Economic Data (FRED).
 
-The user can then interact with a PostgreSQL database, with raw SQL statements being executed on the backend via psycopg3. Firstly, they can create a new table to insert the economic data into with the freedom to specify
+The requested data is processed with Polars (a faster, more memory efficient alternative to Pandas) and
+can be checked for cleanliness and reformatted.
+The user can then interact with a PostgreSQL database, where raw SQL statements are executed within the backend
+via psycopg3. They can create a new table to insert the economic data into with the freedom to specify
 certain table conditions, or alternatively insert into an existing table. The user can also interact with
-existing tables, efficiently loading them into DataFrames with ConnectorX, and verifying that they are free from duplicate values, NaN values, etc. They can choose to clean the data and override the existing tables data.
+existing tables, efficiently loading them into DataFrames with ConnectorX, and verifying that they are free
+from duplicate values, NaN values, etc. They can choose to clean the data and rewrite the existing tables' data.
 
 <h1>Core Dependencies</h1>
 

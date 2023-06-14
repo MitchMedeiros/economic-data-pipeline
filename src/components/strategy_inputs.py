@@ -2,7 +2,7 @@ from dash import html
 from dash_iconify import DashIconify
 import dash_mantine_components as dmc
 
-run_backtest_button = dmc.Button(
+getdata_button = dmc.Button(
     "Request Data",
     leftIcon=DashIconify(icon="icon-park-twotone:data", color="lightGreen", width=30),
     variant="gradient",

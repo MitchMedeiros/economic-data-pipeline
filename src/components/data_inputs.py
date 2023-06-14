@@ -18,3 +18,13 @@ date_calendar = dmc.DateRangePicker(
     style={"width": '238px'},
     id='date_range'
 )
+
+seasonal_checkbox = dmc.Checkbox(
+    color='green',
+    label='Seasonally Adjusted?',
+)
+
+inflation_checkbox = dmc.Checkbox(
+    color='green',
+    label='Inflation Adjusted?',
+)

@@ -3,9 +3,8 @@ from dash_bootstrap_components.themes import DARKLY
 from flask_caching import Cache
 
 import src.callbacks.button_loading
-# import src.callbacks.children as children
-# import src.callbacks.modals as modals
-# import src.callbacks.plotting as plotting
+import src.callbacks.children as children
+import src.callbacks.modals as modals
 import src.callbacks.theme_toggle
 import src.components.layout as layout
 
@@ -49,9 +48,8 @@ cache.init_app(app.server)
 app.layout = layout.create_layout()
 
 # Instantiate the imported callbacks. The clientside callbacks are instantiated via module import.
-# modals.modal_callbacks(app)
-# children.notification_callback(app)
-layout.make_datatable(app)
+modals.modal_callbacks(app)
+children.notification_callback(app)
 
 # Deploys the app locally if run_locally is True.
 if __name__ == '__main__' and config.RUN_LOCALLY:
