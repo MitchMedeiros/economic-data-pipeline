@@ -4,7 +4,6 @@ from dash_iconify import DashIconify
 import dash_mantine_components as dmc
 
 import src.components.data_inputs as data_inputs
-import src.components.strategy_inputs as strategy_inputs
 import src.components.modals as modals
 
 import io
@@ -130,10 +129,29 @@ data_area = dmc.LoadingOverlay(
                         dmc.AccordionControl(accordion_header("Request Economic Data")),
                         dmc.AccordionPanel(
                             [
-                                data_inputs.inflation_checkbox,
-                                data_inputs.seasonal_checkbox,
-                                data_inputs.date_calendar,
-                                strategy_inputs.getdata_button
+                                dbc.Stack(
+                                    [
+                                        data_inputs.bea_select,
+                                        dbc.Stack(
+                                            [
+                                                data_inputs.inflation_checkbox,
+                                                data_inputs.seasonal_checkbox,
+                                            ],
+                                            direction='horizontal',
+                                            gap=3
+                                        ),
+                                        dbc.Stack(
+                                            [
+                                                data_inputs.start_year,
+                                                data_inputs.end_year,
+                                            ],
+                                            direction='horizontal',
+                                            gap=3
+                                        ),
+                                        data_inputs.getdata_button
+                                    ],
+                                    gap=3
+                                )
                             ]
                         )
                     ],
@@ -142,7 +160,16 @@ data_area = dmc.LoadingOverlay(
                 dmc.AccordionItem(
                     [
                         dmc.AccordionControl(accordion_header("Check Cleanliness of Data")),
-                        dmc.AccordionPanel()
+                        dmc.AccordionPanel(
+                            [
+                                dmc.LoadingOverlay(
+                                    html.Div(id='bea_table', style={'max-height': '300px', 'overflow-y': 'auto'}),
+                                    loaderProps={'variant': 'bars', 'color': 'indigo', 'size': 'xl'},
+                                    radius='sm',
+                                    style={'width': '95%', 'margin-left': 'auto', 'margin-right': 'auto'}
+                                )
+                            ]
+                        )
                     ],
                     value='analyze'
                 ),

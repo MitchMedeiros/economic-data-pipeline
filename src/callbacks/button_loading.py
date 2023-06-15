@@ -7,7 +7,7 @@ clientside_callback(
         return true
     }
     ''',
-    Output("run_button", "loading", allow_duplicate=True),
-    Input("run_button", "n_clicks"),
+    Output("data_button", "loading", allow_duplicate=True),
+    Input("data_button", "n_clicks"),
     prevent_initial_call=True
 )
