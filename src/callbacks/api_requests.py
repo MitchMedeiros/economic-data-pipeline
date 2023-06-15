@@ -27,8 +27,8 @@ def bea_api_callback(app):
     @app.callback(
         Output('bea_table', 'children'),
         Output('data_button', 'loading'),
-        State('data_button', 'n_clicks'),
-        Input('start_year_input', 'value'),
+        Input('data_button', 'n_clicks'),
+        State('start_year_input', 'value'),
         State('end_year_input', 'value'),
         State('seasonal_checkbox', 'checked'),
         State('inflation_checkbox', 'checked'),
@@ -37,8 +37,8 @@ def bea_api_callback(app):
     )
     def get_bea_data(n_clicks, start_year, end_year, seasonal, inflation, datasets):
         bea_years = range(start_year, end_year + 1)
-
         bea_years = ','.join(str(year) for year in bea_years)
+
         bea_frequency = 'Q'
         bea_dataset = 'NIPA'
         bea_table = 'T10101'
@@ -46,23 +46,20 @@ def bea_api_callback(app):
         bea_base_url = f"https://apps.bea.gov/api/data/?&UserID={my_config.BEA_KEY}"
         bea_endpoints = {
             'gdp': f"&method=GetData \
-                    &DataSetName={bea_dataset} \
-                    &TableName={bea_table} \
-                    &Frequency={bea_frequency} \
-                    &Year={bea_years}"
+                     &DataSetName={bea_dataset} \
+                     &TableName={bea_table} \
+                     &Frequency={bea_frequency} \
+                     &Year={bea_years}"
         }
 
         bea_api = RestAPI(bea_base_url, bea_endpoints)
         bea_api.fetch_data()
 
-        gdp_data = json.dumps(bea_api.data['gdp']['BEAAPI']['Results']['Data'])
-        gdp_df = pd.read_json(gdp_data)
-        gdp_df = (
-            pd.DataFrame(gdp_df, columns=['TimePeriod', 'DataValue', 'METRIC_NAME', 'LineDescription'])
-                .rename(columns={'TimePeriod': 'date', 'DataValue': 'gdp (%)', 'METRIC_NAME': 'metric'})
-                .loc[gdp_df['LineDescription'] == "Gross domestic product"]
-                .drop(columns=['LineDescription'])
-        )
+        gdp_df = pd.DataFrame(
+            bea_api.data['gdp']['BEAAPI']['Results']['Data'],
+            columns=['TimePeriod', 'DataValue', 'METRIC_NAME', 'LineDescription']
+        ).rename(columns={'TimePeriod': 'date', 'DataValue': 'gdp (%)', 'METRIC_NAME': 'metric'})
+        gdp_df = gdp_df.loc[gdp_df['LineDescription'] == "Gross domestic product"].drop(columns=['LineDescription'])
 
         return html.Div(
             dash_table.DataTable(

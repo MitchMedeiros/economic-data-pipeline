@@ -150,7 +150,7 @@ data_area = dmc.LoadingOverlay(
                                         ),
                                         data_inputs.getdata_button
                                     ],
-                                    gap=3
+                                    gap=3,
                                 )
                             ]
                         )

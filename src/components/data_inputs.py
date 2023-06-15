@@ -8,41 +8,42 @@ except ImportError:
 
 start_year = dmc.NumberInput(
     label="Start Year",
-    # description="Start Date for the Data",
     value=1980,
     min=1940,
     max=2023,
     step=1,
-    style={"width": '150px'},
+    icon=DashIconify(icon='clarity:date-line'),
+    style={"width": '150px', 'text-align': 'center'},
     id='start_year_input'
 )
 
 end_year = dmc.NumberInput(
     label="End Year",
-    # description="End Date for the Data",
     value=2023,
     min=1940,
     max=2023,
     step=1,
-    style={"width": '150px'},
+    icon=DashIconify(icon='clarity:date-line'),
+    style={"width": '150px', 'text-align': 'center'},
     id='end_year_input'
 )
 
 bea_select = dmc.MultiSelect(
     data=[
-        {'label': 'Percent Change in Real GDP', 'value': 'T10101'},
+        {'label': 'Percent Change in GDP', 'value': 'T10101'},
         {'label': 'Personal Income', 'value': 'T20100'},
         {'label': 'Wages and Salaries by Industry', 'value': 'T20200A'},
         {'label': 'Corporate Profits by Industry', 'value': 'T61600A'}
     ],
     value='T10101',
     label="BEA Datasets",
-    icon=DashIconify(icon='arcticons:stockswidget'),
+    icon=DashIconify(icon='flat-color-icons:line-chart'),
     searchable=True,
     nothingFound="Dataset not found",
-    style={"width": 'auto', 'text-align': 'center'},
+    style={"width": '350px', 'text-align': 'center'},
     id='bea_datasets'
 )
+# 'fxemoji:barchart'
 
 seasonal_checkbox = dmc.Checkbox(
     color='green',
@@ -61,6 +62,6 @@ getdata_button = dmc.Button(
     leftIcon=DashIconify(icon="icon-park-twotone:data", color="white", width=24),
     variant="gradient",
     # n_clicks=0,
-    style={'width': '170px'},
+    style={'width': '170px', 'margin-left': 'auto', 'margin-right': 'auto'},
     id='data_button'
 )
