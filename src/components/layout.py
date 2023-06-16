@@ -160,16 +160,7 @@ data_area = dmc.LoadingOverlay(
                 dmc.AccordionItem(
                     [
                         dmc.AccordionControl(accordion_header("Check Cleanliness of Data")),
-                        dmc.AccordionPanel(
-                            [
-                                dmc.LoadingOverlay(
-                                    html.Div(id='bea_table', style={'max-height': '300px', 'overflow-y': 'auto'}),
-                                    loaderProps={'variant': 'bars', 'color': 'indigo', 'size': 'xl'},
-                                    radius='sm',
-                                    style={'width': '95%', 'margin-left': 'auto', 'margin-right': 'auto'}
-                                )
-                            ]
-                        )
+                        dmc.AccordionPanel(html.Div(id='bea_table', style={'max-height': '300px', 'overflow-y': 'auto'}))
                     ],
                     value='analyze'
                 ),
@@ -215,7 +206,7 @@ def create_layout():
                 )
             ],
             position='bottom-center',
-            containerWidth='45%'
+            containerWidth='38%'
         ),
         theme={'colorScheme': 'dark'},
         id='mantine_container'

@@ -35,36 +35,80 @@ def bea_api_callback(app):
         State('bea_datasets', 'value'),
         prevent_initial_call=True
     )
-    def get_bea_data(n_clicks, start_year, end_year, seasonal, inflation, datasets):
+    def get_bea_data(n_clicks, start_year, end_year, seasonal, inflation, selected_tables):
         bea_years = range(start_year, end_year + 1)
         bea_years = ','.join(str(year) for year in bea_years)
 
         bea_frequency = 'Q'
         bea_dataset = 'NIPA'
-        bea_table = 'T10101'
 
-        bea_base_url = f"https://apps.bea.gov/api/data/?&UserID={my_config.BEA_KEY}"
-        bea_endpoints = {
-            'gdp': f"&method=GetData \
-                     &DataSetName={bea_dataset} \
-                     &TableName={bea_table} \
-                     &Frequency={bea_frequency} \
-                     &Year={bea_years}"
+        if 'T10101' not in selected_tables: 
+            selected_tables += ['T10101']
+            T10101_added = True
+        else: 
+            T10101_added = False
+
+        bea_base_url = f"https://apps.bea.gov/api/data/"
+
+        # The multiselect components' value: datasets, is a list of table names.
+        # We can use dictionary comprehension to create the endpoints from this, with the table names are used as the keys.
+        bea_endpoints = {f'{table}': f"?&UserID={my_config.BEA_KEY} \
+                                        &method=GetData \
+                                        &DataSetName={bea_dataset} \
+                                        &TableName={table} \
+                                        &Frequency={bea_frequency} \
+                                        &Year={bea_years}" for table in selected_tables}
+
+        # In general, each table contains multiple economic metrics, for example, gross domestic product and gross national product.
+        # We can use a dictionary to filter on the metric we're interested in per table rather than doing several if statements.
+        filter_metrics = {
+            "T10101": "Gross domestic product",
+            'T10105': "Gross domestic product",
+            'T10107': "Gross domestic product",
+            'T20100': "test",
+            'T20200B': "Wages and salaries",
+            'T61600A': "test"
         }
 
         bea_api = RestAPI(bea_base_url, bea_endpoints)
         bea_api.fetch_data()
 
-        gdp_df = pd.DataFrame(
-            bea_api.data['gdp']['BEAAPI']['Results']['Data'],
-            columns=['TimePeriod', 'DataValue', 'METRIC_NAME', 'LineDescription']
-        ).rename(columns={'TimePeriod': 'date', 'DataValue': 'gdp (%)', 'METRIC_NAME': 'metric'})
-        gdp_df = gdp_df.loc[gdp_df['LineDescription'] == "Gross domestic product"].drop(columns=['LineDescription'])
+        # Creating a date series to index the user selected DataFrames.
+        periods = [item['TimePeriod'] for item in bea_api.data['T10101']['BEAAPI']['Results']['Data']]
+        unique_periods = list(set(periods))
+        date_sr = pd.Series(unique_periods, name='date').sort_values().reset_index(drop=True)
 
+        if T10101_added: selected_tables.remove('T10101')
+
+        # Replacing the JSON data within the bea_api.data dictionary with formatted DataFrames.
+        for table in selected_tables:
+            bea_api.data[table] = (
+                pd.DataFrame(bea_api.data[table]['BEAAPI']['Results']['Data'], columns=['DataValue', 'METRIC_NAME', 'LineDescription']) \
+                .rename(columns={'DataValue': table + '_value', 'METRIC_NAME': table + '_metric'})
+            )
+            bea_api.data[table] = (
+                bea_api.data[table].loc[bea_api.data[table]['LineDescription'] == filter_metrics[table]]
+                .drop(columns=['LineDescription'])
+            )
+
+            # The tables contain multiple values for a given economic measure using differnt methodologies. These are vertically stacked.
+            # To avoid needing to filter on the method column, the table is pivotted in a way that doesn't produce NaN values:
+            unique_metrics = bea_api.data[table][table + '_metric'].unique()
+            sliced_dfs = [date_sr]
+            for metric in unique_metrics:
+                sliced_df = (
+                    bea_api.data[table].loc[bea_api.data[table][table + '_metric'] == metric]
+                    .drop(columns=[table + '_metric'])
+                    .reset_index(drop=True)
+                    .rename(columns={f'{table}_value': f'{table} - ' + metric})
+                )
+                sliced_dfs.append(sliced_df)
+            merged_df = pd.concat(sliced_dfs, axis=1)
+        
         return html.Div(
             dash_table.DataTable(
-                data=gdp_df.to_dict('records'),
-                columns=[{'name': str(i), 'id': str(i)} for i in gdp_df.columns],
+                data=merged_df.to_dict('records'),
+                columns=[{'name': str(i), 'id': str(i)} for i in merged_df.columns],
                 fill_width=False,
                 cell_selectable=False,
                 style_as_list_view=True,

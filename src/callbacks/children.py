@@ -13,8 +13,7 @@ def notification_callback(app):
         return dmc.Notification(
             action='show',
             title=dmc.Text(
-                "Click the About button in the top bar of the page to learn more about what this app does. "
-                "Also click the info icons in the selection area to understand the choices",
+                "Click the About button in the top bar of the page to learn more about what this app does.",
                 size='17px'
             ),
             message=None,

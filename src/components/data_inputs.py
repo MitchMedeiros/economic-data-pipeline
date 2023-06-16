@@ -30,10 +30,12 @@ end_year = dmc.NumberInput(
 
 bea_select = dmc.MultiSelect(
     data=[
-        {'label': 'Percent Change in GDP', 'value': 'T10101'},
-        {'label': 'Personal Income', 'value': 'T20100'},
-        {'label': 'Wages and Salaries by Industry', 'value': 'T20200A'},
-        {'label': 'Corporate Profits by Industry', 'value': 'T61600A'}
+        {'label': 'Percent Change in Real GDP', 'value': 'T10101'},
+        {'label': 'Percent Change in GDP', 'value': 'T10107'},
+        {'label': 'Total GDP in Dollars', 'value': 'T10105'},
+        # {'label': 'Personal Income', 'value': 'T20100'},
+        {'label': 'Wages and Salaries by Industry', 'value': 'T20200B'},
+        # {'label': 'Corporate Profits by Industry', 'value': 'T61600A'}
     ],
     value='T10101',
     label="BEA Datasets",
