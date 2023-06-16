@@ -1,6 +1,6 @@
-import json
-
 from dash import dash_table, html, Input, Output, State
+import dash_mantine_components as dmc
+from dash_iconify import DashIconify
 import pandas as pd
 import requests
 
@@ -81,20 +81,27 @@ def bea_api_callback(app):
         if T10101_added: selected_tables.remove('T10101')
 
         # Replacing the JSON data within the bea_api.data dictionary with formatted DataFrames.
+        bea_dfs = [date_sr]
         for table in selected_tables:
-            bea_api.data[table] = (
-                pd.DataFrame(bea_api.data[table]['BEAAPI']['Results']['Data'], columns=['DataValue', 'METRIC_NAME', 'LineDescription']) \
-                .rename(columns={'DataValue': table + '_value', 'METRIC_NAME': table + '_metric'})
-            )
+            try:
+                bea_api.data[table] = (
+                    pd.DataFrame(bea_api.data[table]['BEAAPI']['Results']['Data'], columns=['DataValue', 'METRIC_NAME', 'LineDescription']) \
+                    .rename(columns={'DataValue': table + '_value', 'METRIC_NAME': table + '_metric'}))
+            except KeyError:
+                return dmc.Alert(
+                    title='Invalid Years: No data is available within the selected years for one of the requested datasets.',
+                    icon=DashIconify(icon='mingcute:alert-fill'),
+                    color='yellow',
+                    withCloseButton=True,
+                ), False
             bea_api.data[table] = (
                 bea_api.data[table].loc[bea_api.data[table]['LineDescription'] == filter_metrics[table]]
-                .drop(columns=['LineDescription'])
-            )
+                .drop(columns=['LineDescription']))
 
             # The tables contain multiple values for a given economic measure using differnt methodologies. These are vertically stacked.
             # To avoid needing to filter on the method column, the table is pivotted in a way that doesn't produce NaN values:
+            sliced_dfs = []
             unique_metrics = bea_api.data[table][table + '_metric'].unique()
-            sliced_dfs = [date_sr]
             for metric in unique_metrics:
                 sliced_df = (
                     bea_api.data[table].loc[bea_api.data[table][table + '_metric'] == metric]
@@ -104,11 +111,13 @@ def bea_api_callback(app):
                 )
                 sliced_dfs.append(sliced_df)
             merged_df = pd.concat(sliced_dfs, axis=1)
+            bea_dfs.append(merged_df)
+        bea_df = pd.concat(bea_dfs, axis=1)
         
         return html.Div(
             dash_table.DataTable(
-                data=merged_df.to_dict('records'),
-                columns=[{'name': str(i), 'id': str(i)} for i in merged_df.columns],
+                data=bea_df.to_dict('records'),
+                columns=[{'name': str(i), 'id': str(i)} for i in bea_df.columns],
                 fill_width=False,
                 cell_selectable=False,
                 style_as_list_view=True,
