@@ -132,14 +132,7 @@ data_area = dmc.LoadingOverlay(
                                 dbc.Stack(
                                     [
                                         data_inputs.bea_select,
-                                        dbc.Stack(
-                                            [
-                                                data_inputs.inflation_checkbox,
-                                                data_inputs.seasonal_checkbox,
-                                            ],
-                                            direction='horizontal',
-                                            gap=3
-                                        ),
+                                        data_inputs.fred_select,
                                         dbc.Stack(
                                             [
                                                 data_inputs.start_year,

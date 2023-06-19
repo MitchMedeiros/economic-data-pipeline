@@ -30,20 +30,19 @@ def bea_api_callback(app):
         Input('data_button', 'n_clicks'),
         State('start_year_input', 'value'),
         State('end_year_input', 'value'),
-        State('seasonal_checkbox', 'checked'),
-        State('inflation_checkbox', 'checked'),
         State('bea_datasets', 'value'),
+        State('fred_datasets', 'value'),        
         prevent_initial_call=True
     )
-    def get_bea_data(n_clicks, start_year, end_year, seasonal, inflation, selected_tables):
+    def get_bea_data(n_clicks, start_year, end_year, selected_bea_tables, selected_fred_tables):
         bea_years = range(start_year, end_year + 1)
         bea_years = ','.join(str(year) for year in bea_years)
 
         bea_frequency = 'Q'
         bea_dataset = 'NIPA'
 
-        if 'T10101' not in selected_tables: 
-            selected_tables += ['T10101']
+        if 'T10101' not in selected_bea_tables: 
+            selected_bea_tables += ['T10101']
             T10101_added = True
         else: 
             T10101_added = False
@@ -52,12 +51,15 @@ def bea_api_callback(app):
 
         # The multiselect components' value: datasets, is a list of table names.
         # We can use dictionary comprehension to create the endpoints from this, with the table names are used as the keys.
-        bea_endpoints = {f'{table}': f"?&UserID={my_config.BEA_KEY} \
-                                        &method=GetData \
-                                        &DataSetName={bea_dataset} \
-                                        &TableName={table} \
-                                        &Frequency={bea_frequency} \
-                                        &Year={bea_years}" for table in selected_tables}
+        bea_endpoints = {
+            f'{table}': (f"?&UserID={my_config.BEA_KEY}"
+                        f"&method=GetData"
+                        f"&DataSetName={bea_dataset}"
+                        f"&TableName={table}"
+                        f"&Frequency={bea_frequency}"
+                        f"&Year={bea_years}")
+            for table in selected_bea_tables
+        }
 
         # In general, each table contains multiple economic metrics, for example, gross domestic product and gross national product.
         # We can use a dictionary to filter on the metric we're interested in per table rather than doing several if statements.
@@ -65,7 +67,7 @@ def bea_api_callback(app):
             "T10101": "Gross domestic product",
             'T10105': "Gross domestic product",
             'T10107': "Gross domestic product",
-            'T20100': "test",
+            'T20100': "Personal income",
             'T20200B': "Wages and salaries",
             'T61600A': "test"
         }
@@ -78,18 +80,18 @@ def bea_api_callback(app):
         unique_periods = list(set(periods))
         date_sr = pd.Series(unique_periods, name='date').sort_values().reset_index(drop=True)
 
-        if T10101_added: selected_tables.remove('T10101')
+        if T10101_added: selected_bea_tables.remove('T10101')
 
         # Replacing the JSON data within the bea_api.data dictionary with formatted DataFrames.
         bea_dfs = [date_sr]
-        for table in selected_tables:
+        for table in selected_bea_tables:
             try:
                 bea_api.data[table] = (
                     pd.DataFrame(bea_api.data[table]['BEAAPI']['Results']['Data'], columns=['DataValue', 'METRIC_NAME', 'LineDescription']) \
                     .rename(columns={'DataValue': table + '_value', 'METRIC_NAME': table + '_metric'}))
             except KeyError:
                 return dmc.Alert(
-                    title='Invalid Years: No data is available within the selected years for one of the requested datasets.',
+                    title="Invalid Years: No data is available within the selected years for one of the requested datasets.",
                     icon=DashIconify(icon='mingcute:alert-fill'),
                     color='yellow',
                     withCloseButton=True,
@@ -113,6 +115,41 @@ def bea_api_callback(app):
             merged_df = pd.concat(sliced_dfs, axis=1)
             bea_dfs.append(merged_df)
         bea_df = pd.concat(bea_dfs, axis=1)
+
+        fred_units = "pch"
+        fred_frequency = "q"
+        fred_start_year = f"{start_year}-01-01"
+        fred_end_year = f"{end_year}-01-01"
+
+        fred_base_url = "https://api.stlouisfed.org/fred/series/observations"
+
+        fred_endpoints = {
+            f'{table}': (f"?series_id={table}"
+                            f"&api_key={my_config.FRED_KEY}"
+                            f"&file_type=json"
+                            f"&observation_start={fred_start_year}"
+                            f"&observation_end={fred_end_year}"
+                            f"&units={fred_units}"
+                            f"&frequency={fred_frequency}"
+                            f"&aggregation_method=sum")
+            for table in selected_fred_tables
+        }
+        
+        fred_api = RestAPI(fred_base_url, fred_endpoints)
+        fred_api.fetch_data()
+
+        for table in selected_fred_tables:
+            try:
+                fred_api.data[table] = (
+                    pd.DataFrame(fred_api.data[table]['observations'], columns=['value']) \
+                    .rename(columns={'value': table + '_value'}))
+            except KeyError:
+                return dmc.Alert(
+                    title="There was a problem requesting the selected data from FRED.",
+                    icon=DashIconify(icon='mingcute:alert-fill'),
+                    color='yellow',
+                    withCloseButton=True,
+                ), False
         
         return html.Div(
             dash_table.DataTable(

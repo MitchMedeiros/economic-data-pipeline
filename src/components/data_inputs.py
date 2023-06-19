@@ -47,23 +47,23 @@ bea_select = dmc.MultiSelect(
 )
 # 'fxemoji:barchart'
 
-seasonal_checkbox = dmc.Checkbox(
-    color='green',
-    label='Seasonally Adjusted',
-    id='seasonal_checkbox'
-)
-
-inflation_checkbox = dmc.Checkbox(
-    color='indigo',
-    label='Inflation Adjusted',
-    id='inflation_checkbox'
+fred_select = dmc.MultiSelect(
+    data=[
+        {'label': 'Quarterly CPI', 'value': 'CPIAUCSL'},
+    ],
+    value='CPIAUCSL',
+    label="FRED Datasets",
+    icon=DashIconify(icon='flat-color-icons:line-chart'),
+    searchable=True,
+    nothingFound="Dataset not found",
+    style={"width": '350px', 'text-align': 'center'},
+    id='fred_datasets'
 )
 
 getdata_button = dmc.Button(
-    "Request Data",
+    "Request Selected Datasets",
     leftIcon=DashIconify(icon="icon-park-twotone:data", color="white", width=24),
     variant="gradient",
-    # n_clicks=0,
-    style={'width': '170px', 'margin-left': 'auto', 'margin-right': 'auto'},
+    style={'width': '300px', 'margin-left': 'auto', 'margin-right': 'auto'},
     id='data_button'
 )
