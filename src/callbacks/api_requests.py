@@ -26,8 +26,8 @@ BEA Endpoint Descriptions:
 def bea_api_callback(app):
     @app.callback(
         Output('bea_table', 'children'),
-        Output('data_button', 'loading'),
-        Input('data_button', 'n_clicks'),
+        Output('quarterly_button', 'loading'),
+        Input('quarterly_button', 'n_clicks'),
         State('start_year_input', 'value'),
         State('end_year_input', 'value'),
         State('bea_datasets', 'value'),
@@ -35,11 +35,8 @@ def bea_api_callback(app):
         prevent_initial_call=True
     )
     def get_bea_data(n_clicks, start_year, end_year, selected_bea_tables, selected_fred_tables):
-        bea_years = range(start_year, end_year + 1)
-        bea_years = ','.join(str(year) for year in bea_years)
-
-        bea_frequency = 'Q'
-        bea_dataset = 'NIPA'
+        all_years_string = range(start_year, end_year + 1)
+        all_years_string = ','.join(str(year) for year in all_years_string)
 
         if 'T10101' not in selected_bea_tables: 
             selected_bea_tables += ['T10101']
@@ -54,10 +51,10 @@ def bea_api_callback(app):
         bea_endpoints = {
             f'{table}': (f"?&UserID={my_config.BEA_KEY}"
                         f"&method=GetData"
-                        f"&DataSetName={bea_dataset}"
+                        f"&DataSetName=NIPA"
+                        f"&Frequency=Q"
                         f"&TableName={table}"
-                        f"&Frequency={bea_frequency}"
-                        f"&Year={bea_years}")
+                        f"&Year={all_years_string}")
             for table in selected_bea_tables
         }
 
@@ -75,6 +72,8 @@ def bea_api_callback(app):
         bea_api = RestAPI(bea_base_url, bea_endpoints)
         bea_api.fetch_data()
 
+        print(bea_api.data['T10101'])
+
         # Creating a date series to index the user selected DataFrames.
         periods = [item['TimePeriod'] for item in bea_api.data['T10101']['BEAAPI']['Results']['Data']]
         unique_periods = list(set(periods))
@@ -83,7 +82,7 @@ def bea_api_callback(app):
         if T10101_added: selected_bea_tables.remove('T10101')
 
         # Replacing the JSON data within the bea_api.data dictionary with formatted DataFrames.
-        bea_dfs = [date_sr]
+        all_dfs = [date_sr]
         for table in selected_bea_tables:
             try:
                 bea_api.data[table] = (
@@ -113,8 +112,7 @@ def bea_api_callback(app):
                 )
                 sliced_dfs.append(sliced_df)
             merged_df = pd.concat(sliced_dfs, axis=1)
-            bea_dfs.append(merged_df)
-        bea_df = pd.concat(bea_dfs, axis=1)
+            all_dfs.append(merged_df)
 
         fred_units = "pch"
         fred_frequency = "q"
@@ -140,7 +138,7 @@ def bea_api_callback(app):
 
         for table in selected_fred_tables:
             try:
-                fred_api.data[table] = (
+                fred_df = (
                     pd.DataFrame(fred_api.data[table]['observations'], columns=['value']) \
                     .rename(columns={'value': table + '_value'}))
             except KeyError:
@@ -150,11 +148,14 @@ def bea_api_callback(app):
                     color='yellow',
                     withCloseButton=True,
                 ), False
+            all_dfs.append(fred_df)
+
+        table_df = pd.concat(all_dfs , axis=1)
         
         return html.Div(
             dash_table.DataTable(
-                data=bea_df.to_dict('records'),
-                columns=[{'name': str(i), 'id': str(i)} for i in bea_df.columns],
+                data=table_df.to_dict('records'),
+                columns=[{'name': str(i), 'id': str(i)} for i in table_df.columns],
                 fill_width=False,
                 cell_selectable=False,
                 style_as_list_view=True,

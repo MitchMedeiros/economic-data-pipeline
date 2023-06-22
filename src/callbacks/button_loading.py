@@ -7,7 +7,18 @@ clientside_callback(
         return true
     }
     ''',
-    Output("data_button", "loading", allow_duplicate=True),
-    Input("data_button", "n_clicks"),
+    Output("quarterly_button", "loading", allow_duplicate=True),
+    Input("quarterly_button", "n_clicks"),
+    prevent_initial_call=True
+)
+
+clientside_callback(
+    '''
+    function(n_clicks) {
+        return true
+    }
+    ''',
+    Output("daily_button", "loading", allow_duplicate=True),
+    Input("daily_button", "n_clicks"),
     prevent_initial_call=True
 )

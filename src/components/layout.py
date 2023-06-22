@@ -129,21 +129,33 @@ data_area = dmc.LoadingOverlay(
                         dmc.AccordionControl(accordion_header("Request Economic Data")),
                         dmc.AccordionPanel(
                             [
-                                dbc.Stack(
+                                dbc.Row(
                                     [
-                                        data_inputs.bea_select,
-                                        data_inputs.fred_select,
-                                        dbc.Stack(
+                                        dbc.Col(dbc.Stack(
                                             [
-                                                data_inputs.start_year,
-                                                data_inputs.end_year,
+                                                data_inputs.bea_select,
+                                                data_inputs.fred_select,
+                                                dbc.Stack(
+                                                    [
+                                                        data_inputs.start_year,
+                                                        data_inputs.end_year,
+                                                    ],
+                                                    direction='horizontal',
+                                                    gap=3
+                                                ),
+                                                data_inputs.quarterly_button
                                             ],
-                                            direction='horizontal',
-                                            gap=3
-                                        ),
-                                        data_inputs.getdata_button
-                                    ],
-                                    gap=3,
+                                            gap=3,
+                                        )),
+                                        dbc.Col(dmc.Divider(color='indigo', size='md', orientation="vertical", style={"height": '300px'})),
+                                        dbc.Col(
+                                            [
+                                                data_inputs.treasury_select,
+                                                data_inputs.treasury_years,
+                                                data_inputs.daily_button
+                                            ]
+                                        )
+                                    ]
                                 )
                             ]
                         )
