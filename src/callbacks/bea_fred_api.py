@@ -25,7 +25,7 @@ BEA Endpoint Descriptions:
 
 def bea_fred_callback(app):
     @app.callback(
-        Output('bea_table', 'children'),
+        Output('bea_fred_table', 'children'),
         Output('quarterly_button', 'loading'),
         Input('quarterly_button', 'n_clicks'),
         State('start_year_input', 'value'),

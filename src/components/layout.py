@@ -168,7 +168,12 @@ data_area = dmc.LoadingOverlay(
                 dmc.AccordionItem(
                     [
                         dmc.AccordionControl(accordion_header("Check Cleanliness of Data")),
-                        dmc.AccordionPanel(html.Div(id='bea_table', style={'max-height': '300px', 'overflow-y': 'auto'}))
+                        dmc.AccordionPanel(
+                            [
+                                html.Div(id='bea_fred_table', style={'max-height': '300px', 'overflow-y': 'auto'}),
+                                html.Div(id='treasury_table', style={'max-height': '300px', 'overflow-y': 'auto'})
+                            ]
+                        )
                     ],
                     value='analyze'
                 ),
@@ -209,7 +214,8 @@ def create_layout():
                         html.Div(id='notification_trigger'),
                         html.Div(id='notification_output'),
                     ],
-                    fluid=True
+                    fluid=True,
+                    className='dbc'
                 )
             ],
             position='bottom-center',

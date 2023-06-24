@@ -2,14 +2,12 @@ from dash import dash_table, html, Input, Output, State
 from dash_iconify import DashIconify
 import dash_mantine_components as dmc
 import pandas as pd
-import requests
 
 from . bea_fred_api import RestAPI
-import my_config
 
-def bea_fred_callback(app):
+def treasury_callback(app):
     @app.callback(
-        Output('bea_table', 'children'),
+        Output('treasury_table', 'children'),
         Output('daily_button', 'loading'),
         Input('daily_button', 'n_clicks'),
         State('treasury_dates', 'value'),
@@ -17,8 +15,17 @@ def bea_fred_callback(app):
         prevent_initial_call=True
     )
     def get_bea_data(n_clicks, dates, selected_treasury_tables):
+        start_year = 2016
+        end_year = 2022
+
         all_years_string = range(start_year, end_year + 1)
         all_years_string = ','.join(str(year) for year in all_years_string)
+
+        if 'v1/accounting/dts/dts_table_1' not in selected_treasury_tables: 
+            selected_treasury_tables += ['v1/accounting/dts/dts_table_1']
+            dts_table_1_added = True
+        else: 
+            dts_table_1_added = False
 
         treasury_base_url = "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/"
         treasury_endpoints = {
@@ -28,6 +35,15 @@ def bea_fred_callback(app):
         treasury_api = RestAPI(treasury_base_url, treasury_endpoints)
         treasury_api.fetch_data()
 
+        # Creating a date series to index the user selected DataFrames.
+        periods = [item['record_date'] for item in treasury_api.data['v1/accounting/dts/dts_table_1']['data']]
+        unique_periods = list(set(periods))
+        date_sr = pd.Series(unique_periods, name='date').sort_values().reset_index(drop=True)
+
+        if dts_table_1_added: selected_treasury_tables.remove('v1/accounting/dts/dts_table_1')
+
+        # Replacing the JSON data within the bea_api.data dictionary with formatted DataFrames.
+        all_dfs = [date_sr]
         for table in selected_treasury_tables:
             if table == 'v1/accounting/dts/dts_table_1':
                 try:
@@ -78,6 +94,9 @@ def bea_fred_callback(app):
                     )
                     sliced_dfs.append(sliced_df)
                 merged_df = pd.concat(sliced_dfs, axis=1)
+            all_dfs.append(treasury_api.data[table])
+        
+        table_df = pd.concat(all_dfs , axis=1)
 
         return html.Div(
             dash_table.DataTable(
