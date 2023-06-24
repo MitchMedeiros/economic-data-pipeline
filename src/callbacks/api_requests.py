@@ -1,6 +1,6 @@
 from dash import dash_table, html, Input, Output, State
-import dash_mantine_components as dmc
 from dash_iconify import DashIconify
+import dash_mantine_components as dmc
 import pandas as pd
 import requests
 
@@ -71,8 +71,6 @@ def bea_api_callback(app):
 
         bea_api = RestAPI(bea_base_url, bea_endpoints)
         bea_api.fetch_data()
-
-        print(bea_api.data['T10101'])
 
         # Creating a date series to index the user selected DataFrames.
         periods = [item['TimePeriod'] for item in bea_api.data['T10101']['BEAAPI']['Results']['Data']]
