@@ -23,7 +23,7 @@ page_header = dbc.Navbar(
                             [
                                 html.Img(src='assets/favicon.ico', height="35px", style={'margin-left': '25px', 'margin-right': '25px'}),
                                 dmc.Text(
-                                    "Economic Data Requesting and Cleaning",
+                                    "Economic and Financial Data",
                                     variant='gradient',
                                     gradient={'from': '#52b1ff', 'to': '#739dff', 'deg': 45},
                                     style={'font-size': '25px'},
@@ -126,13 +126,14 @@ data_area = dmc.LoadingOverlay(
             [
                 dmc.AccordionItem(
                     [
-                        dmc.AccordionControl(accordion_header("Request Economic Data")),
+                        dmc.AccordionControl(accordion_header("Request Data")),
                         dmc.AccordionPanel(
                             [
                                 dbc.Row(
                                     [
                                         dbc.Col(dbc.Stack(
                                             [
+                                                dmc.Text("Quarterly Economic Data", color='blue', size=18, weight=600, align='center'),
                                                 data_inputs.bea_select,
                                                 data_inputs.fred_select,
                                                 dbc.Stack(
@@ -147,14 +148,16 @@ data_area = dmc.LoadingOverlay(
                                             ],
                                             gap=3,
                                         )),
-                                        dbc.Col(dmc.Divider(color='indigo', size='md', orientation="vertical", style={"height": '300px'})),
-                                        dbc.Col(
-                                            [
+                                        # dbc.Col(dmc.Divider(color='indigo', size='md', orientation="vertical", style={"height": '300px'})),
+                                        dbc.Col(dbc.Stack(
+                                            [   
+                                                dmc.Text("Daily Treasury Data", color='blue', size=18, weight=600, align='center'),
                                                 data_inputs.treasury_select,
                                                 data_inputs.treasury_years,
                                                 data_inputs.daily_button
-                                            ]
-                                        )
+                                            ],
+                                            gap=3
+                                        ))
                                     ]
                                 )
                             ]
@@ -198,16 +201,15 @@ def create_layout():
     return dmc.MantineProvider(
         dmc.NotificationsProvider(
             [
-                dbc.Container(
+                dmc.Container(
                     [
                         page_header,
-                        dbc.Row(dbc.Col(data_area, style={'overflow': 'hidden'})),
+                        data_area,
                         html.Div(id='dummy_output'),
                         html.Div(id='notification_trigger'),
                         html.Div(id='notification_output'),
                     ],
-                    fluid=True,
-                    className='dbc'
+                    fluid=True
                 )
             ],
             position='bottom-center',

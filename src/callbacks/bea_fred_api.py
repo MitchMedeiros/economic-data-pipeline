@@ -23,7 +23,7 @@ BEA Endpoint Descriptions:
 "gdp" - Percent Change From Preceding Period in Real Gross Domestic Product (A) (Q).
 '''
 
-def bea_api_callback(app):
+def bea_fred_callback(app):
     @app.callback(
         Output('bea_table', 'children'),
         Output('quarterly_button', 'loading'),

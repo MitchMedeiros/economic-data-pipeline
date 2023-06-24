@@ -2,7 +2,7 @@ from dash import Dash
 from dash_bootstrap_components.themes import DARKLY
 from flask_caching import Cache
 
-import src.callbacks.api_requests as api_requests
+import src.callbacks.bea_fred_api as bea_fred_api
 import src.callbacks.button_loading
 import src.callbacks.children as children
 import src.callbacks.modals as modals
@@ -51,7 +51,7 @@ app.layout = layout.create_layout()
 # Instantiate the imported callbacks. The clientside callbacks are instantiated via module import.
 modals.modal_callbacks(app)
 children.notification_callback(app)
-api_requests.bea_api_callback(app)
+bea_fred_api.bea_fred_callback(app)
 
 # Deploys the app locally if run_locally is True.
 if __name__ == '__main__' and config.RUN_LOCALLY:
