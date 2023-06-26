@@ -12,7 +12,7 @@ bea_select = dmc.MultiSelect(
         {'label': 'Percent Change in GDP', 'value': 'T10107'},
         {'label': 'Total GDP in Dollars', 'value': 'T10105'},
         # {'label': 'Personal Income', 'value': 'T20100'},
-        {'label': 'Wages and Salaries by Industry', 'value': 'T20200B'},
+        # {'label': 'Wages and Salaries by Industry', 'value': 'T20200B'},
         # {'label': 'Corporate Profits by Industry', 'value': 'T61600A'}
     ],
     value=['T10101'],

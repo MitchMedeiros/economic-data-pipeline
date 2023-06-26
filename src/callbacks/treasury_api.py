@@ -42,60 +42,37 @@ def treasury_callback(app):
 
         if dts_table_1_added: selected_treasury_tables.remove('v1/accounting/dts/dts_table_1')
 
+        table_columns = {
+            'v1/accounting/dts/dts_table_1': ['close_today_bal', 'account_type'],
+            'v2/accounting/od/debt_to_penny': ['tot_pub_debt_out_amt']
+        }
+
+        table_column_names = {
+            'v1/accounting/dts/dts_table_1': {'close_today_bal': 'closing_daily_balance'},
+            'v2/accounting/od/debt_to_penny': {'tot_pub_debt_out_amt': 'Total_Outstanding_Debt'}
+        }
+
         # Replacing the JSON data within the bea_api.data dictionary with formatted DataFrames.
         all_dfs = [date_sr]
         for table in selected_treasury_tables:
-            if table == 'v1/accounting/dts/dts_table_1':
-                try:
-                    treasury_api.data[table] = (
-                        pd.DataFrame(treasury_api.data[table]['data'], columns=['record_date', 'close_today_bal', 'account_type']) \
-                        .rename(columns={'close_today_bal': 'closing_daily_balance'}))
-                except KeyError:
-                    return dmc.Alert(
-                        title="Invalid Years: No data is available within the selected years for one of the requested datasets.",
-                        icon=DashIconify(icon='mingcute:alert-fill'),
-                        color='yellow',
-                        withCloseButton=True,
-                    ), False
+            try:
+                treasury_api.data[table] = (
+                    pd.DataFrame(treasury_api.data[table]['data'], columns=table_columns[table]) \
+                    .rename(columns=table_column_names[table]))
+            except KeyError:
+                return dmc.Alert(
+                    title="Invalid Years: No data is available within the selected years for one of the requested datasets.",
+                    icon=DashIconify(icon='mingcute:alert-fill'),
+                    color='yellow',
+                    withCloseButton=True,
+                ), False
 
+            if table == 'v1/accounting/dts/dts_table_1':
                 treasury_api.data[table] = (
                     treasury_api.data[table].loc[treasury_api.data[table]['account_type'] == 'Federal Reserve Account']
                     .drop(columns=['account_type'])).reset_index(drop=True)
-            elif table == 'v2/accounting/od/debt_to_penny':
-                try:
-                    treasury_api.data[table] = (
-                        pd.DataFrame(treasury_api.data[table]['data'], columns=['record_date', 'transaction_type', 'transaction_today_amt']) \
-                        .rename(columns={'transaction_today_amt': 'amount ($M)'}))
-                    treasury_api.data[table] = treasury_api.data[table].astype({"transaction_type": str, "amount ($M)": float})
-                except KeyError:
-                    return dmc.Alert(
-                        title="Invalid Years: No data is available within the selected years for one of the requested datasets.",
-                        icon=DashIconify(icon='mingcute:alert-fill'),
-                        color='yellow',
-                        withCloseButton=True,
-                    ), False
 
-                treasury_api.data[table] = (
-                    treasury_api.data[table]
-                    .groupby(['record_date', 'transaction_type'])['amount ($M)']
-                    .sum()
-                    .reset_index()
-                    # .drop(columns=['record_date'])
-                )
-
-                sliced_dfs = []
-                unique_metrics = treasury_api.data[table]['transaction_type'].unique()
-                for metric in unique_metrics:
-                    sliced_df = (
-                        treasury_api.data[table].loc[treasury_api.data[table]['transaction_type'] == metric]
-                        .drop(columns=['transaction_type'])
-                        .reset_index(drop=True)
-                        .rename(columns={'amount ($M)': f'{metric} ' + 'amount ($M)'})
-                    )
-                    sliced_dfs.append(sliced_df)
-                merged_df = pd.concat(sliced_dfs, axis=1)
             all_dfs.append(treasury_api.data[table])
-        
         table_df = pd.concat(all_dfs , axis=1)
 
         return html.Div(
