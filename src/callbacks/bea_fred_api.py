@@ -29,6 +29,48 @@ def create_date_series(date_name, data):
     date_sr = pd.Series(unique_periods, name='date').sort_values().reset_index(drop=True)
     return date_sr
 
+def process_bea_table(api, table, filter_metrics, table_names):
+    try:
+        data = api.data[table]['BEAAPI']['Results']['Data']
+        df = pd.DataFrame(data, columns=['DataValue', 'METRIC_NAME', 'LineDescription'])
+    except KeyError:
+        return dmc.Alert(
+            title="Invalid Years: No data is available within the selected years for one of the requested datasets.",
+            icon=DashIconify(icon='mingcute:alert-fill'),
+            color='yellow',
+            withCloseButton=True,
+        ), False
+
+    # Filtering the table to only include the general economic metric that we want i.e. GDP or GDI
+    if table != 'T20307':
+        df = df.loc[df['LineDescription'] == filter_metrics[table]].drop(columns=['LineDescription'])
+
+    # Pivoting the table to have seperate columns for each distinct calculation method of the general economic metric.
+    sliced_dfs = []
+    unique_metrics = df['METRIC_NAME'].unique()
+    for metric in unique_metrics:
+        sliced_df = df.loc[df['METRIC_NAME'] == metric] \
+            .drop(columns=['METRIC_NAME']) \
+            .reset_index(drop=True) \
+            .rename(columns={'DataValue': f'{table_names[table]} - ' + metric})
+        sliced_dfs.append(sliced_df)
+
+    pivoted_df = pd.concat(sliced_dfs, axis=1)
+    return pivoted_df
+
+def process_fred_table(api, table, table_names):
+    try:
+        data = api.data[table]['observations']
+        df = pd.DataFrame(data, columns=['value']).rename(columns={'value': table_names[table]})
+        return df
+    except KeyError:
+        return dmc.Alert(
+            title="Invalid Years: No data is available within the selected years for one of the requested datasets.",
+            icon=DashIconify(icon='mingcute:alert-fill'),
+            color='yellow',
+            withCloseButton=True,
+        ), False
+
 def bea_fred_callback(app):
     @app.callback(
         Output('bea_fred_table', 'children'),
@@ -40,11 +82,11 @@ def bea_fred_callback(app):
         State('fred_datasets', 'value'),        
         prevent_initial_call=True
     )
-    def get_bea_data(n_clicks, start_year, end_year, selected_bea_tables, selected_fred_tables):
+    def request_and_wrangle_data(n_clicks, start_year, end_year, selected_bea_tables, selected_fred_tables):
         all_years_string = range(start_year, end_year + 1)
         all_years_string = ','.join(str(year) for year in all_years_string)
 
-        add_bea_date_table = add_date_table('T10101', selected_bea_tables)
+        date_table_added = add_date_table('T10101', selected_bea_tables)
 
         BEA_BASE_URL = f"https://apps.bea.gov/api/data/"
 
@@ -66,6 +108,14 @@ def bea_fred_callback(app):
             'T10105': "Gross domestic product",
             'T10107': "Gross domestic product",
             'T20100': "Personal income"
+        }
+
+        table_names = {
+            "T10101": "GDP Quarterly Change",
+            'T10105': "GDP Quarterly Change",
+            'T10107': "GDP Quarterly Change",
+            'T20100': "Personal Income",
+            'CPIAUCSL': "CPI Quarterly Change",
         }
 
         FRED_UNITS = "pch"
@@ -92,58 +142,20 @@ def bea_fred_callback(app):
 
         date_sr = create_date_series('TimePeriod', bea_api.data['T10101']['BEAAPI']['Results']['Data'])
 
-        if add_bea_date_table: selected_bea_tables.remove('T10101')
-
-        def process_bea_table(bea_api, table, filter_metrics):
-            try:
-                data = bea_api.data[table]['BEAAPI']['Results']['Data']
-                df = pd.DataFrame(data, columns=['DataValue', 'METRIC_NAME', 'LineDescription'])
-            except KeyError:
-                return dmc.Alert(
-                    title="Invalid Years: No data is available within the selected years for one of the requested datasets.",
-                    icon=DashIconify(icon='mingcute:alert-fill'),
-                    color='yellow',
-                    withCloseButton=True,
-                ), False
-
-            if table != 'T20307':
-                df = df.loc[df['LineDescription'] == filter_metrics[table]].drop(columns=['LineDescription'])
-
-            sliced_dfs = []
-            unique_metrics = df['METRIC_NAME'].unique()
-            for metric in unique_metrics:
-                sliced_df = df.loc[df['METRIC_NAME'] == metric] \
-                    .drop(columns=['METRIC_NAME']) \
-                    .reset_index(drop=True) \
-                    .rename(columns={'DataValue': f'{table} - ' + metric})
-                sliced_dfs.append(sliced_df)
-
-            pivoted_df = pd.concat(sliced_dfs, axis=1)
-            return pivoted_df
+        if date_table_added: selected_bea_tables.remove('T10101')
 
         all_dfs = [date_sr]
-        for table in selected_bea_tables:
-            bea_df = process_bea_table(bea_api, table, filter_metrics)
-            if bea_df is not None:
-                all_dfs.append(bea_df)
 
+        for table in selected_bea_tables:
+            bea_df = process_bea_table(bea_api, table, filter_metrics, table_names)
+            if bea_df is not None: all_dfs.append(bea_df)
         
         fred_api = RestAPI(FRED_BASE_URL, fred_endpoints)
         fred_api.fetch_data()
 
         for table in selected_fred_tables:
-            try:
-                fred_df = (
-                    pd.DataFrame(fred_api.data[table]['observations'], columns=['value']) \
-                    .rename(columns={'value': table + '_value'}))
-            except KeyError:
-                return dmc.Alert(
-                    title="There was a problem requesting the selected data from FRED.",
-                    icon=DashIconify(icon='mingcute:alert-fill'),
-                    color='yellow',
-                    withCloseButton=True,
-                ), False
-            all_dfs.append(fred_df)
+            fred_df = process_fred_table(fred_api, table, table_names)
+            if fred_df is not None: all_dfs.append(fred_df)
 
         table_df = pd.concat(all_dfs , axis=1)
         
