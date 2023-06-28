@@ -138,8 +138,8 @@ data_area = dmc.LoadingOverlay(
                                                 data_inputs.fred_select,
                                                 dbc.Stack(
                                                     [
-                                                        data_inputs.start_year,
-                                                        data_inputs.end_year,
+                                                        data_inputs.bea_fred_start_year,
+                                                        data_inputs.bea_fred_end_year,
                                                     ],
                                                     direction='horizontal',
                                                     gap=3
@@ -153,7 +153,14 @@ data_area = dmc.LoadingOverlay(
                                             [   
                                                 dmc.Text("Daily Treasury Data", color='blue', size=18, weight=600, align='center'),
                                                 data_inputs.treasury_select,
-                                                data_inputs.treasury_years,
+                                                dbc.Stack(
+                                                    [
+                                                        data_inputs.treasury_start_year,
+                                                        data_inputs.treasury_end_year,
+                                                    ],
+                                                    direction='horizontal',
+                                                    gap=3
+                                                ),
                                                 data_inputs.daily_button
                                             ],
                                             gap=3

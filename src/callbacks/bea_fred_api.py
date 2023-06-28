@@ -6,6 +6,21 @@ import requests
 
 import my_config
 
+filter_metrics = {
+    "T10101": "Gross domestic product",
+    'T10105': "Gross domestic product",
+    'T10107': "Gross domestic product",
+    'T20100': "Personal income"
+}
+
+table_names = {
+    "T10101": "GDP Quarterly Change",
+    'T10105': "GDP Quarterly Change",
+    'T10107': "GDP Quarterly Change",
+    'T20100': "Personal Income",
+    'CPIAUCSL': "CPI Quarterly Change"
+}
+
 class RestAPI:
     def __init__(self, base_url, endpoints):
         self.base_url = base_url
@@ -118,46 +133,26 @@ def bea_fred_callback(app):
         Output('bea_fred_table', 'children'),
         Output('quarterly_button', 'loading'),
         Input('quarterly_button', 'n_clicks'),
-        State('start_year_input', 'value'),
-        State('end_year_input', 'value'),
+        State('bea_fred_start_year_input', 'value'),
+        State('bea_fred_end_year_input', 'value'),
         State('bea_datasets', 'value'),
         State('fred_datasets', 'value'),        
         prevent_initial_call=True
     )
     def request_and_wrangle_data(n_clicks, start_year, end_year, selected_bea_tables, selected_fred_tables):
+        DATE_TABLE_NAME = 'T10101'
         all_years_string = ','.join(str(year) for year in range(start_year, end_year + 1))
 
-        date_table_added = add_date_table('T10101', selected_bea_tables)
-
-        # In general, each table contains multiple economic metrics, i.e. GDP and GNP.
-        # This dictionary is used to filter on the metric we're interested in per table.
-        filter_metrics = {
-            "T10101": "Gross domestic product",
-            'T10105': "Gross domestic product",
-            'T10107': "Gross domestic product",
-            'T20100': "Personal income"
-        }
-
-        table_names = {
-            "T10101": "GDP Quarterly Change",
-            'T10105': "GDP Quarterly Change",
-            'T10107': "GDP Quarterly Change",
-            'T20100': "Personal Income",
-            'CPIAUCSL': "CPI Quarterly Change"
-        }
-
+        date_table_added = add_date_table(DATE_TABLE_NAME, selected_bea_tables)
         bea_api = DataFetcher.fetch_bea_data(selected_bea_tables, all_years_string)
         fred_api = DataFetcher.fetch_fred_data(selected_fred_tables, start_year, end_year)
-        date_sr = create_date_series('TimePeriod', bea_api.data['T10101']['BEAAPI']['Results']['Data'])
-
-        if date_table_added: selected_bea_tables.remove('T10101')
+        date_sr = create_date_series('TimePeriod', bea_api.data[DATE_TABLE_NAME]['BEAAPI']['Results']['Data'])
+        if date_table_added: selected_bea_tables.remove(DATE_TABLE_NAME)
 
         all_dfs = [date_sr]
-
         for table in selected_bea_tables:
             bea_df = process_bea_table(bea_api, table, filter_metrics, table_names)
             if bea_df is not None: all_dfs.append(bea_df)
-
         for table in selected_fred_tables:
             fred_df = process_fred_table(fred_api, table, table_names)
             if fred_df is not None: all_dfs.append(fred_df)

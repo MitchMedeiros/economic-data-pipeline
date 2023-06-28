@@ -38,7 +38,7 @@ fred_select = dmc.MultiSelect(
     id='fred_datasets'
 )
 
-start_year = dmc.NumberInput(
+bea_fred_start_year = dmc.NumberInput(
     label="Start Year",
     value=1980,
     min=1940,
@@ -46,10 +46,10 @@ start_year = dmc.NumberInput(
     step=1,
     icon=DashIconify(icon='clarity:date-line'),
     style={'text-align': 'center'},
-    id='start_year_input'
+    id='bea_fred_start_year_input'
 )
 
-end_year = dmc.NumberInput(
+bea_fred_end_year = dmc.NumberInput(
     label="End Year",
     value=2023,
     min=1940,
@@ -57,7 +57,7 @@ end_year = dmc.NumberInput(
     step=1,
     icon=DashIconify(icon='clarity:date-line'),
     style={'text-align': 'center'},
-    id='end_year_input'
+    id='bea_fred_end_year_input'
 )
 
 quarterly_button = dmc.Button(
@@ -81,18 +81,26 @@ treasury_select = dmc.MultiSelect(
     id='treasury_datasets'
 )
 
-treasury_years = dmc.DateRangePicker(
-    minDate=config.minimum_selectable_date,
-    maxDate=config.maximum_selectable_date,
-    value=[config.calendar_start, config.calendar_end],
-    label="Date Range",
-    amountOfMonths=2,
-    allowSingleDateInRange=True,
-    clearable=False,
+treasury_start_year = dmc.NumberInput(
+    label="Start Year",
+    value=1980,
+    min=1940,
+    max=2023,
+    step=1,
     icon=DashIconify(icon='clarity:date-line'),
-    inputFormat="MMM DD, YYYY",
     style={'text-align': 'center'},
-    id='treasury_dates' 
+    id='treasury_start_year_input'
+)
+
+treasury_end_year = dmc.NumberInput(
+    label="End Year",
+    value=2023,
+    min=1940,
+    max=2023,
+    step=1,
+    icon=DashIconify(icon='clarity:date-line'),
+    style={'text-align': 'center'},
+    id='treasury_end_year_input'
 )
 
 daily_button = dmc.Button(
