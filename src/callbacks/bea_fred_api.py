@@ -7,14 +7,14 @@ import requests
 import my_config
 
 filter_metrics = {
-    "T10101": "Gross domestic product",
+    'T10101': "Gross domestic product",
     'T10105': "Gross domestic product",
     'T10107': "Gross domestic product",
     'T20100': "Personal income"
 }
 
 table_names = {
-    "T10101": "GDP Quarterly Change",
+    'T10101': "GDP Quarterly Change",
     'T10105': "GDP Quarterly Change",
     'T10107': "GDP Quarterly Change",
     'T20100': "Personal Income",
@@ -54,8 +54,9 @@ class DataFetcher:
 
     @staticmethod
     def fetch_fred_data(selected_fred_tables, start_year, end_year):
-        fred_units = "pch"
-        fred_frequency = "q"
+        # Monthly data is converted to quarterly data by setting the frequency to 'q' and aggregation method to sum
+        fred_units = 'pch'
+        fred_frequency = 'q'
         fred_start_year = f"{start_year}-01-01"
         fred_end_year = f"{end_year}-01-01"
 
@@ -77,21 +78,11 @@ class DataFetcher:
         fred_api.fetch_data()
         return fred_api
 
-def add_date_table(table, dataset_list):
-    date_table_added = table not in dataset_list
-    if date_table_added: dataset_list += [table]
-    return date_table_added
-
-def create_date_series(date_name, data):
-    periods = [item[date_name] for item in data]
-    unique_periods = list(set(periods))
-    date_sr = pd.Series(unique_periods, name='date').sort_values().reset_index(drop=True)
-    return date_sr
-
 def process_bea_table(api, table, filter_metrics, table_names):
     try:
         data = api.data[table]['BEAAPI']['Results']['Data']
-        df = pd.DataFrame(data, columns=['DataValue', 'METRIC_NAME', 'LineDescription'])
+        df = pd.DataFrame(data, columns=['TimePeriod', 'DataValue', 'METRIC_NAME', 'LineDescription'])
+        df = df.loc[df['LineDescription'] == filter_metrics[table]].drop(columns=['LineDescription'])
     except KeyError:
         return dmc.Alert(
             title="Invalid Years: No data is available within the selected years for one of the requested datasets.",
@@ -99,10 +90,6 @@ def process_bea_table(api, table, filter_metrics, table_names):
             color='yellow',
             withCloseButton=True,
         ), False
-
-    # Filtering the table to only include the general economic metric that we want i.e. GDP or GDI
-    if table != 'T20307':
-        df = df.loc[df['LineDescription'] == filter_metrics[table]].drop(columns=['LineDescription'])
 
     # Pivoting the table to have seperate columns for each distinct calculation method of the general economic metric.
     sliced_dfs = [
@@ -112,13 +99,16 @@ def process_bea_table(api, table, filter_metrics, table_names):
         .rename(columns={'DataValue': f'{table_names[table]} - ' + metric})
         for metric in df['METRIC_NAME'].unique()
     ]
-    pivoted_df = pd.concat(sliced_dfs, axis=1)
+    pivoted_df = sliced_dfs[0]
+    for i in range(1, len(sliced_dfs)):
+        pivoted_df = pd.merge(pivoted_df, sliced_dfs[i], on='TimePeriod')
+    pivoted_df.rename(columns={'TimePeriod': 'date'}, inplace=True)
     return pivoted_df
 
 def process_fred_table(api, table, table_names):
     try:
         data = api.data[table]['observations']
-        df = pd.DataFrame(data, columns=['value']).rename(columns={'value': table_names[table]})
+        df = pd.DataFrame(data, columns=['date', 'value']).rename(columns={'value': table_names[table]})
         return df
     except KeyError:
         return dmc.Alert(
@@ -140,16 +130,12 @@ def bea_fred_callback(app):
         prevent_initial_call=True
     )
     def request_and_wrangle_data(n_clicks, start_year, end_year, selected_bea_tables, selected_fred_tables):
-        DATE_TABLE_NAME = 'T10101'
         all_years_string = ','.join(str(year) for year in range(start_year, end_year + 1))
 
-        date_table_added = add_date_table(DATE_TABLE_NAME, selected_bea_tables)
         bea_api = DataFetcher.fetch_bea_data(selected_bea_tables, all_years_string)
         fred_api = DataFetcher.fetch_fred_data(selected_fred_tables, start_year, end_year)
-        date_sr = create_date_series('TimePeriod', bea_api.data[DATE_TABLE_NAME]['BEAAPI']['Results']['Data'])
-        if date_table_added: selected_bea_tables.remove(DATE_TABLE_NAME)
 
-        all_dfs = [date_sr]
+        all_dfs = []
         for table in selected_bea_tables:
             bea_df = process_bea_table(bea_api, table, filter_metrics, table_names)
             if bea_df is not None: all_dfs.append(bea_df)
@@ -157,7 +143,9 @@ def bea_fred_callback(app):
             fred_df = process_fred_table(fred_api, table, table_names)
             if fred_df is not None: all_dfs.append(fred_df)
 
-        table_df = pd.concat(all_dfs , axis=1)
+        table_df = all_dfs[0]
+        for i in range(1, len(all_dfs)):
+            table_df = pd.merge(table_df, all_dfs[i], on='date')
         
         return html.Div(
             dash_table.DataTable(

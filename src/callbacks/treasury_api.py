@@ -3,16 +3,16 @@ from dash_iconify import DashIconify
 import dash_mantine_components as dmc
 import pandas as pd
 
-from . bea_fred_api import RestAPI, add_date_table, create_date_series
+from . bea_fred_api import RestAPI
 
 table_columns = {
-    'v1/accounting/dts/dts_table_1': ['close_today_bal', 'account_type'],
-    'v2/accounting/od/debt_to_penny': ['tot_pub_debt_out_amt']
+    'v1/accounting/dts/dts_table_1': ['record_date', 'close_today_bal', 'account_type'],
+    'v2/accounting/od/debt_to_penny': ['record_date', 'tot_pub_debt_out_amt']
 }
 
 table_column_names = {
-    'v1/accounting/dts/dts_table_1': {'close_today_bal': 'closing_daily_balance'},
-    'v2/accounting/od/debt_to_penny': {'tot_pub_debt_out_amt': 'Total_Outstanding_Debt'}
+    'v1/accounting/dts/dts_table_1': {'close_today_bal': 'Daily Treasury Balance (M $)'},
+    'v2/accounting/od/debt_to_penny': {'tot_pub_debt_out_amt': 'Outstanding US Debt ($)'}
 }
 
 class DataFetcher:
@@ -55,20 +55,18 @@ def treasury_callback(app):
         prevent_initial_call=True
     )
     def get_bea_data(n_clicks, start_year, end_year, selected_treasury_tables):
-        DATE_TABLE_NAME = 'v2/accounting/od/debt_to_penny'
         all_years_string = ','.join(str(year) for year in range(start_year, end_year + 1))
 
-        date_table_added = add_date_table(DATE_TABLE_NAME, selected_treasury_tables)
         treasury_api = DataFetcher.fetch_treasury_data(selected_treasury_tables, all_years_string)
-        date_sr = create_date_series('record_date', treasury_api.data[DATE_TABLE_NAME]['data'])
-        if date_table_added: selected_treasury_tables.remove(DATE_TABLE_NAME)
 
-        all_dfs = [date_sr]
+        all_dfs = []
         for table in selected_treasury_tables:
             treasury_df = process_treasury_table(treasury_api, table, table_columns, table_column_names)
             if treasury_df is not None: all_dfs.append(treasury_df)
 
-        table_df = pd.concat(all_dfs , axis=1)
+        table_df = all_dfs[0]
+        for i in range(1, len(all_dfs)):
+            table_df = pd.merge(table_df, all_dfs[i], on='record_date')
 
         return html.Div(
             dash_table.DataTable(

@@ -11,9 +11,7 @@ bea_select = dmc.MultiSelect(
         {'label': 'Percent Change in Real GDP', 'value': 'T10101'},
         {'label': 'Percent Change in GDP', 'value': 'T10107'},
         {'label': 'Total GDP in Dollars', 'value': 'T10105'},
-        # {'label': 'Personal Income', 'value': 'T20100'},
-        # {'label': 'Wages and Salaries by Industry', 'value': 'T20200B'},
-        # {'label': 'Corporate Profits by Industry', 'value': 'T61600A'}
+        {'label': 'Personal Income', 'value': 'T20100'},
     ],
     value=['T10101'],
     label="BEA Datasets",
@@ -40,8 +38,8 @@ fred_select = dmc.MultiSelect(
 
 bea_fred_start_year = dmc.NumberInput(
     label="Start Year",
-    value=1980,
-    min=1940,
+    value=1948,
+    min=1948,
     max=2023,
     step=1,
     icon=DashIconify(icon='clarity:date-line'),
