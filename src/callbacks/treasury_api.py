@@ -46,12 +46,12 @@ def process_treasury_table(api, table, table_columns, table_column_names):
 
 def treasury_callback(app):
     @app.callback(
-        Output('treasury_table', 'children'),
+        Output('daily_table', 'children'),
         Output('daily_button', 'loading'),
         Input('daily_button', 'n_clicks'),
-        State('treasury_start_year_input', 'value'),
-        State('treasury_end_year_input', 'value'),        
-        State('treasury_datasets', 'value'),   
+        State('daily_start_year_input', 'value'),
+        State('daily_end_year_input', 'value'),        
+        State('treasury_daily_datasets', 'value'),   
         prevent_initial_call=True
     )
     def get_bea_data(n_clicks, start_year, end_year, selected_treasury_tables):

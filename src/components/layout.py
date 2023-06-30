@@ -132,36 +132,54 @@ data_area = dmc.LoadingOverlay(
                                 dbc.Row(
                                     [
                                         dbc.Col(dbc.Stack(
-                                            [
-                                                dmc.Text("Quarterly Economic Data", color='blue', size=18, weight=600, align='center'),
-                                                data_inputs.bea_select,
-                                                data_inputs.fred_select,
-                                                dbc.Stack(
-                                                    [
-                                                        data_inputs.bea_fred_start_year,
-                                                        data_inputs.bea_fred_end_year,
-                                                    ],
-                                                    direction='horizontal',
-                                                    gap=3
-                                                ),
-                                                data_inputs.quarterly_button
-                                            ],
-                                            gap=3,
-                                        )),
-                                        # dbc.Col(dmc.Divider(color='indigo', size='md', orientation="vertical", style={"height": '300px'})),
-                                        dbc.Col(dbc.Stack(
                                             [   
-                                                dmc.Text("Daily Treasury Data", color='blue', size=18, weight=600, align='center'),
-                                                data_inputs.treasury_select,
+                                                dmc.Text("Daily Economic Data", color='blue', size=18, weight=600, align='center'),
+                                                data_inputs.fred_daily_select,
+                                                data_inputs.treasury_daily_select,
                                                 dbc.Stack(
                                                     [
-                                                        data_inputs.treasury_start_year,
-                                                        data_inputs.treasury_end_year,
+                                                        data_inputs.daily_start_year,
+                                                        data_inputs.daily_end_year,
                                                     ],
                                                     direction='horizontal',
                                                     gap=3
                                                 ),
                                                 data_inputs.daily_button
+                                            ],
+                                            gap=3
+                                        )),
+                                        # dbc.Col(dmc.Divider(color='indigo', size='md', orientation="vertical", style={"height": '300px'})),
+                                        dbc.Col(dbc.Stack(
+                                            [   
+                                                dmc.Text("Monthly Economic Data", color='blue', size=18, weight=600, align='center'),
+                                                data_inputs.fred_monthly_select,                                                
+                                                dbc.Stack(
+                                                    [
+                                                        data_inputs.monthly_start_year,
+                                                        data_inputs.monthly_end_year,
+                                                    ],
+                                                    direction='horizontal',
+                                                    gap=3
+                                                ),
+                                                data_inputs.monthly_button
+                                            ],
+                                            gap=3
+                                        )),
+                                        # dbc.Col(dmc.Divider(color='indigo', size='md', orientation="vertical", style={"height": '300px'})),
+                                        dbc.Col(dbc.Stack(
+                                            [
+                                                dmc.Text("Quarterly Economic Data", color='blue', size=18, weight=600, align='center'),
+                                                data_inputs.fred_quarterly_select,
+                                                data_inputs.bea_quarterly_select,
+                                                dbc.Stack(
+                                                    [
+                                                        data_inputs.quarterly_start_year,
+                                                        data_inputs.quarterly_end_year,
+                                                    ],
+                                                    direction='horizontal',
+                                                    gap=3
+                                                ),
+                                                data_inputs.quarterly_button
                                             ],
                                             gap=3
                                         ))
@@ -177,8 +195,8 @@ data_area = dmc.LoadingOverlay(
                         dmc.AccordionControl(accordion_header("Check Cleanliness of Data")),
                         dmc.AccordionPanel(
                             [
-                                html.Div(id='bea_fred_table', style={'max-height': '300px', 'overflow-y': 'auto'}),
-                                html.Div(id='treasury_table', style={'max-height': '300px', 'overflow-y': 'auto'})
+                                html.Div(id='daily_table', style={'max-height': '300px', 'overflow-y': 'auto'}),                                
+                                html.Div(id='quarterly_table', style={'max-height': '300px', 'overflow-y': 'auto'}),
                             ]
                         )
                     ],

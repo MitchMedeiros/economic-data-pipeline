@@ -24,7 +24,9 @@ table_names = {
     'T20307': "PCE (Quarterly Change)",
     'T20301': "Real PCE (Quarterly Change)",
     'T20304': "PCEPI",
-    'CPIAUCSL': "CPI (Quarterly Change)"
+    'CPIAUCSL': "CPI",
+    'PAYEMS': 'Nonfarm Payrolls (Thousands of Persons)',
+    'UNRATE': 'Unemployment Rate',
 }
 
 class RestAPI:
@@ -61,7 +63,7 @@ class DataFetcher:
     @staticmethod
     def fetch_fred_data(selected_fred_tables, start_year, end_year):
         # Monthly data is converted to quarterly data by setting the frequency to 'q' and aggregation method to sum
-        fred_units = 'pch'
+        fred_units = 'lin'
         fred_frequency = 'q'
         fred_start_year = f"{start_year}-01-01"
         fred_end_year = f"{end_year}-01-01"
@@ -128,13 +130,13 @@ def process_fred_table(api, table, table_names):
 
 def bea_fred_callback(app):
     @app.callback(
-        Output('bea_fred_table', 'children'),
+        Output('quarterly_table', 'children'),
         Output('quarterly_button', 'loading'),
         Input('quarterly_button', 'n_clicks'),
-        State('bea_fred_start_year_input', 'value'),
-        State('bea_fred_end_year_input', 'value'),
-        State('bea_datasets', 'value'),
-        State('fred_datasets', 'value'),        
+        State('quarterly_start_year_input', 'value'),
+        State('quarterly_end_year_input', 'value'),
+        State('bea_quarterly_datasets', 'value'),
+        State('fred_quarterly_datasets', 'value'),        
         prevent_initial_call=True
     )
     def request_and_wrangle_data(n_clicks, start_year, end_year, selected_bea_tables, selected_fred_tables):
@@ -144,12 +146,12 @@ def bea_fred_callback(app):
         fred_api = DataFetcher.fetch_fred_data(selected_fred_tables, start_year, end_year)
 
         all_dfs = []
-        for table in selected_bea_tables:
-            bea_df = process_bea_table(bea_api, table, filter_metrics, table_names)
-            if bea_df is not None: all_dfs.append(bea_df)
         for table in selected_fred_tables:
             fred_df = process_fred_table(fred_api, table, table_names)
             if fred_df is not None: all_dfs.append(fred_df)
+        for table in selected_bea_tables:
+            bea_df = process_bea_table(bea_api, table, filter_metrics, table_names)
+            if bea_df is not None: all_dfs.append(bea_df)
 
         table_df = all_dfs[0]
         for i in range(1, len(all_dfs)):
