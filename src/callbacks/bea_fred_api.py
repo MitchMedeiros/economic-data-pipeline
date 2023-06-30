@@ -10,15 +10,21 @@ filter_metrics = {
     'T10101': "Gross domestic product",
     'T10105': "Gross domestic product",
     'T10107': "Gross domestic product",
-    'T20100': "Personal income"
+    'T20100': "Personal income",
+    'T20307': "Personal consumption expenditures (PCE)",
+    'T20301': "Personal consumption expenditures (PCE)",
+    'T20304': "Personal consumption expenditures (PCE)",
 }
 
 table_names = {
-    'T10101': "GDP Quarterly Change",
-    'T10105': "GDP Quarterly Change",
-    'T10107': "GDP Quarterly Change",
-    'T20100': "Personal Income",
-    'CPIAUCSL': "CPI Quarterly Change"
+    'T10101': "Real GDP (Quarterly Change)",
+    'T10105': "Total GDP (Millions $)",
+    'T10107': "GDP (Quarterly Change)",
+    'T20100': "Personal Income (Millions $)",
+    'T20307': "PCE (Quarterly Change)",
+    'T20301': "Real PCE (Quarterly Change)",
+    'T20304': "PCEPI",
+    'CPIAUCSL': "CPI (Quarterly Change)"
 }
 
 class RestAPI:
@@ -109,6 +115,8 @@ def process_fred_table(api, table, table_names):
     try:
         data = api.data[table]['observations']
         df = pd.DataFrame(data, columns=['date', 'value']).rename(columns={'value': table_names[table]})
+        df['date'] = pd.to_datetime(df['date'])
+        df['date'] = df['date'].dt.year.astype(str) + 'Q' + df['date'].dt.quarter.astype(str)
         return df
     except KeyError:
         return dmc.Alert(
