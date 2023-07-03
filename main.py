@@ -2,12 +2,13 @@ from dash import Dash
 from dash_bootstrap_components.themes import DARKLY
 from flask_caching import Cache
 
-import src.callbacks.bea_fred_api as bea_fred_api
 import src.callbacks.button_loading
 import src.callbacks.children as children
+import src.callbacks.daily_api_requests as daily_api_requests
 import src.callbacks.modals as modals
+import src.callbacks.monthly_api_requests as monthly_api_requests
+import src.callbacks.quarterly_api_requests as quarterly_api_requests
 import src.callbacks.theme_toggle
-import src.callbacks.treasury_api as treasury_api
 import src.components.layout as layout
 
 try:
@@ -52,8 +53,9 @@ app.layout = layout.create_layout()
 # Instantiate the imported callbacks. The clientside callbacks are instantiated via module import.
 modals.modal_callbacks(app)
 children.notification_callback(app)
-bea_fred_api.bea_fred_callback(app)
-treasury_api.treasury_callback(app)
+daily_api_requests.daily_callback(app)
+# monthly_api_requests.monthly_callback(app)
+quarterly_api_requests.quarterly_callback(app)
 
 # Deploys the app locally if run_locally is True.
 if __name__ == '__main__' and config.RUN_LOCALLY:

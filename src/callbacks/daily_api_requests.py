@@ -3,7 +3,7 @@ from dash_iconify import DashIconify
 import dash_mantine_components as dmc
 import pandas as pd
 
-from . bea_fred_api import RestAPI
+from . quarterly_api_requests import RestAPI
 
 table_columns = {
     'v1/accounting/dts/dts_table_1': ['record_date', 'close_today_bal', 'account_type'],
@@ -44,7 +44,7 @@ def process_treasury_table(api, table, table_columns, table_column_names):
         ), False
     return df
 
-def treasury_callback(app):
+def daily_callback(app):
     @app.callback(
         Output('daily_table', 'children'),
         Output('daily_button', 'loading'),
@@ -54,7 +54,7 @@ def treasury_callback(app):
         State('treasury_daily_datasets', 'value'),   
         prevent_initial_call=True
     )
-    def get_bea_data(n_clicks, start_year, end_year, selected_treasury_tables):
+    def request_and_format_daily_data(n_clicks, start_year, end_year, selected_treasury_tables):
         all_years_string = ','.join(str(year) for year in range(start_year, end_year + 1))
 
         treasury_api = DataFetcher.fetch_treasury_data(selected_treasury_tables, all_years_string)

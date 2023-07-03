@@ -128,7 +128,7 @@ def process_fred_table(api, table, table_names):
             withCloseButton=True,
         ), False
 
-def bea_fred_callback(app):
+def quarterly_callback(app):
     @app.callback(
         Output('quarterly_table', 'children'),
         Output('quarterly_button', 'loading'),
@@ -139,7 +139,7 @@ def bea_fred_callback(app):
         State('fred_quarterly_datasets', 'value'),        
         prevent_initial_call=True
     )
-    def request_and_wrangle_data(n_clicks, start_year, end_year, selected_bea_tables, selected_fred_tables):
+    def request_and_format_quarterly_data(n_clicks, start_year, end_year, selected_bea_tables, selected_fred_tables):
         all_years_string = ','.join(str(year) for year in range(start_year, end_year + 1))
 
         bea_api = DataFetcher.fetch_bea_data(selected_bea_tables, all_years_string)
