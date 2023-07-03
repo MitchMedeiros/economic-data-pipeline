@@ -1,73 +1,60 @@
 from dash import dash_table, html, Input, Output, State
-from dash_iconify import DashIconify
-import dash_mantine_components as dmc
 import pandas as pd
 
-from . quarterly_api_requests import RestAPI
+import src.common.methods_functions as methods_functions
 
-table_columns = {
-    'v1/accounting/dts/dts_table_1': ['record_date', 'close_today_bal', 'account_type'],
-    'v2/accounting/od/debt_to_penny': ['record_date', 'tot_pub_debt_out_amt']
+filter_metrics = {
+    'T10101': "Gross domestic product",
+    'T10105': "Gross domestic product",
+    'T10107': "Gross domestic product",
+    'T20100': "Personal income",
+    'T20307': "Personal consumption expenditures (PCE)",
+    'T20301': "Personal consumption expenditures (PCE)",
+    'T20304': "Personal consumption expenditures (PCE)",
 }
 
-table_column_names = {
-    'v1/accounting/dts/dts_table_1': {'close_today_bal': 'Daily Treasury Balance (M $)'},
-    'v2/accounting/od/debt_to_penny': {'tot_pub_debt_out_amt': 'Outstanding US Debt ($)'}
+table_names = {
+    'T10101': "Real GDP (Quarterly Change)",
+    'T10105': "Total GDP (Millions $)",
+    'T10107': "GDP (Quarterly Change)",
+    'T20100': "Personal Income (Millions $)",
+    'T20307': "PCE (Quarterly Change)",
+    'T20301': "Real PCE (Quarterly Change)",
+    'T20304': "PCEPI",
+    'CPIAUCSL': "CPI",
+    'PAYEMS': 'Nonfarm Payrolls (Thousands of Persons)',
+    'UNRATE': 'Unemployment Rate',
 }
-
-class DataFetcher:
-    @staticmethod
-    def fetch_treasury_data(selected_treasury_tables, dates):
-        treasury_base_url = "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/"
-
-        treasury_endpoints = {
-            f'{table}': f"{table}?&filter=record_fiscal_year:in:({dates})&page[size]=10000" for table in selected_treasury_tables
-        }
-
-        treasury_api = RestAPI(treasury_base_url, treasury_endpoints)
-        treasury_api.fetch_data()
-        return treasury_api
-    
-def process_treasury_table(api, table, table_columns, table_column_names):
-    try:
-        data = api.data[table]['data']
-        df = pd.DataFrame(data, columns=table_columns[table]).rename(columns=table_column_names[table])
-
-        if table == 'v1/accounting/dts/dts_table_1':
-            df = df.loc[df['account_type'] == 'Federal Reserve Account'].drop(columns=['account_type']).reset_index(drop=True)
-    except KeyError:
-        return dmc.Alert(
-            title="Invalid Years: No data is available within the selected years for one of the requested datasets.",
-            icon=DashIconify(icon='mingcute:alert-fill'),
-            color='yellow',
-            withCloseButton=True,
-        ), False
-    return df
 
 # def monthly_callback(app):
 #     @app.callback(
-#         Output('daily_table', 'children'),
-#         Output('daily_button', 'loading'),
-#         Input('daily_button', 'n_clicks'),
-#         State('daily_start_year_input', 'value'),
-#         State('daily_end_year_input', 'value'),        
-#         State('treasury_daily_datasets', 'value'),   
+#         Output('monthly_table', 'children'),
+#         Output('monthly_button', 'loading'),
+#         Input('monthly_button', 'n_clicks'),
+#         State('monthly_start_year_input', 'value'),
+#         State('monthly_end_year_input', 'value'),
+#         State('bea_monthly_datasets', 'value'),
+#         State('fred_monthly_datasets', 'value'),        
 #         prevent_initial_call=True
 #     )
-#     def request_and_format_monthly_data(n_clicks, start_year, end_year, selected_treasury_tables):
+#     def request_and_format_monthly_data(n_clicks, start_year, end_year, selected_bea_tables, selected_fred_tables):
 #         all_years_string = ','.join(str(year) for year in range(start_year, end_year + 1))
 
-#         treasury_api = DataFetcher.fetch_treasury_data(selected_treasury_tables, all_years_string)
+#         bea_api = methods_functions.DataFetcher.fetch_bea_data(selected_bea_tables, all_years_string, 'Q')
+#         fred_api = methods_functions.DataFetcher.fetch_fred_data(selected_fred_tables, start_year, end_year, 'q', 'sum')
 
 #         all_dfs = []
-#         for table in selected_treasury_tables:
-#             treasury_df = process_treasury_table(treasury_api, table, table_columns, table_column_names)
-#             if treasury_df is not None: all_dfs.append(treasury_df)
+#         for table in selected_fred_tables:
+#             fred_df = methods_functions.process_fred_table(fred_api, table, table_names)
+#             if fred_df is not None: all_dfs.append(fred_df)
+#         for table in selected_bea_tables:
+#             bea_df = methods_functions.process_bea_table(bea_api, table, filter_metrics, table_names)
+#             if bea_df is not None: all_dfs.append(bea_df)
 
 #         table_df = all_dfs[0]
 #         for i in range(1, len(all_dfs)):
-#             table_df = pd.merge(table_df, all_dfs[i], on='record_date')
-
+#             table_df = pd.merge(table_df, all_dfs[i], on='date')
+        
 #         return html.Div(
 #             dash_table.DataTable(
 #                 data=table_df.to_dict('records'),

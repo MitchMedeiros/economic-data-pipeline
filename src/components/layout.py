@@ -1,16 +1,10 @@
-from dash import dcc, html
+from dash import html
 import dash_bootstrap_components as dbc
 from dash_iconify import DashIconify
 import dash_mantine_components as dmc
 
 import src.components.data_inputs as data_inputs
 import src.components.modals as modals
-
-import io
-import base64
-
-from dash import Input, Output, State, dash_table
-import pandas as pd
 
 # The top bar of the app
 page_header = dbc.Navbar(
@@ -116,9 +110,6 @@ def accordion_header(displayed_text):
         style={'width': '100%'}
     )
 
-tab_style = {'padding': '4px', 'padding-top': '9px'}
-selected_tab_style = {'padding': '4px', 'padding-top': '7px'}
-
 # The main section of the app where data is displayed. Contains three tabs.
 data_area = dmc.LoadingOverlay(
     [
@@ -195,7 +186,8 @@ data_area = dmc.LoadingOverlay(
                         dmc.AccordionControl(accordion_header("Check Cleanliness of Data")),
                         dmc.AccordionPanel(
                             [
-                                html.Div(id='daily_table', style={'max-height': '300px', 'overflow-y': 'auto'}),                                
+                                html.Div(id='daily_table', style={'max-height': '300px', 'overflow-y': 'auto'}),        
+                                html.Div(id='monthly_table', style={'max-height': '300px', 'overflow-y': 'auto'}),                        
                                 html.Div(id='quarterly_table', style={'max-height': '300px', 'overflow-y': 'auto'}),
                             ]
                         )
