@@ -4,7 +4,7 @@ import pandas as pd
 
 import src.common.methods_functions as methods_functions
 
-filter_metrics = {
+filter_metric = {
     'T10101': "Gross domestic product",
     'T10105': "Gross domestic product",
     'T10107': "Gross domestic product",
@@ -14,17 +14,20 @@ filter_metrics = {
     'T20304': "Personal consumption expenditures (PCE)",
 }
 
-table_names = {
+bea_column_names = {
     'T10101': "Real GDP (Quarterly Change)",
     'T10105': "Total GDP (Millions $)",
     'T10107': "GDP (Quarterly Change)",
     'T20100': "Personal Income (Millions $)",
     'T20307': "PCE (Quarterly Change)",
     'T20301': "Real PCE (Quarterly Change)",
-    'T20304': "PCEPI",
-    'CPIAUCSL': "CPI",
-    'PAYEMS': 'Nonfarm Payrolls (Thousands of Persons)',
-    'UNRATE': 'Unemployment Rate',
+    'T20304': "PCEPI"
+}
+
+fred_column_names = {
+    'CPIAUCSL': {'value': "CPI"},
+    'PAYEMS': {'value': 'Nonfarm Payrolls (Thousands of Persons)'},
+    'UNRATE': {'value': 'Unemployment Rate'}
 }
 
 def quarterly_callback(app):
@@ -46,10 +49,10 @@ def quarterly_callback(app):
 
         all_dfs = []
         for table in selected_fred_tables:
-            fred_df = methods_functions.process_fred_table(fred_api, table, table_names)
+            fred_df = methods_functions.process_fred_table(fred_api, table, fred_column_names, quarterly=True)
             if fred_df is not None: all_dfs.append(fred_df)
         for table in selected_bea_tables:
-            bea_df = methods_functions.process_bea_table(bea_api, table, filter_metrics, table_names)
+            bea_df = methods_functions.process_bea_table(bea_api, table, filter_metric, bea_column_names)
             if bea_df is not None: all_dfs.append(bea_df)
 
         table_df = all_dfs[0]

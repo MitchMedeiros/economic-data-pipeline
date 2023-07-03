@@ -15,15 +15,7 @@ filter_metrics = {
 
 table_names = {
     'T10101': "Real GDP (Quarterly Change)",
-    'T10105': "Total GDP (Millions $)",
-    'T10107': "GDP (Quarterly Change)",
-    'T20100': "Personal Income (Millions $)",
-    'T20307': "PCE (Quarterly Change)",
-    'T20301': "Real PCE (Quarterly Change)",
-    'T20304': "PCEPI",
-    'CPIAUCSL': "CPI",
-    'PAYEMS': 'Nonfarm Payrolls (Thousands of Persons)',
-    'UNRATE': 'Unemployment Rate',
+    'T10105': "Total GDP (Millions $)"
 }
 
 # def monthly_callback(app):
@@ -45,7 +37,7 @@ table_names = {
 
 #         all_dfs = []
 #         for table in selected_fred_tables:
-#             fred_df = methods_functions.process_fred_table(fred_api, table, table_names)
+#             fred_df = methods_functions.process_fred_table(fred_api, table, table_names, monthly=True)
 #             if fred_df is not None: all_dfs.append(fred_df)
 #         for table in selected_bea_tables:
 #             bea_df = methods_functions.process_bea_table(bea_api, table, filter_metrics, table_names)

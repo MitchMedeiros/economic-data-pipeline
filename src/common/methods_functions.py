@@ -101,12 +101,16 @@ def process_bea_table(api, table, filter_metrics, table_names):
     pivoted_df.rename(columns={'TimePeriod': 'date'}, inplace=True)
     return pivoted_df
 
-def process_fred_table(api, table, table_names):
+def process_fred_table(api, table, column_names, monthly=False, quarterly=False):
     try:
         data = api.data[table]['observations']
-        df = pd.DataFrame(data, columns=['date', 'value']).rename(columns={'value': table_names[table]})
-        df['date'] = pd.to_datetime(df['date'])
-        df['date'] = df['date'].dt.year.astype(str) + 'Q' + df['date'].dt.quarter.astype(str)
+        df = pd.DataFrame(data, columns=['date', 'value']).rename(columns=column_names[table])
+        if monthly:
+            df['date'] = pd.to_datetime(df['date'])
+            df['date'] = df['date'].dt.month.astype(str) + df['date'].dt.year.astype(str)
+        if quarterly:
+            df['date'] = pd.to_datetime(df['date'])
+            df['date'] = df['date'].dt.year.astype(str) + 'Q' + df['date'].dt.quarter.astype(str)
         return df
     except KeyError:
         return dmc.Alert(
@@ -116,10 +120,10 @@ def process_fred_table(api, table, table_names):
             withCloseButton=True,
         ), False
 
-def process_treasury_table(api, table, table_columns, table_column_names):
+def process_treasury_table(api, table, table_columns, column_names):
     try:
         data = api.data[table]['data']
-        df = pd.DataFrame(data, columns=table_columns[table]).rename(columns=table_column_names[table])
+        df = pd.DataFrame(data, columns=table_columns[table]).rename(columns=column_names[table])
 
         if table == 'v1/accounting/dts/dts_table_1':
             df = df.loc[df['account_type'] == 'Federal Reserve Account'].drop(columns=['account_type']).reset_index(drop=True)
