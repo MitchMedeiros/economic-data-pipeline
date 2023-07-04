@@ -7,8 +7,8 @@ clientside_callback(
         return true
     }
     ''',
-    Output("quarterly_button", "loading", allow_duplicate=True),
-    Input("quarterly_button", "n_clicks"),
+    Output("daily_button", "loading", allow_duplicate=True),
+    Input("daily_button", "n_clicks"),
     prevent_initial_call=True
 )
 
@@ -18,7 +18,18 @@ clientside_callback(
         return true
     }
     ''',
-    Output("daily_button", "loading", allow_duplicate=True),
-    Input("daily_button", "n_clicks"),
+    Output("monthly_button", "loading", allow_duplicate=True),
+    Input("monthly_button", "n_clicks"),
+    prevent_initial_call=True
+)
+
+clientside_callback(
+    '''
+    function(n_clicks) {
+        return true
+    }
+    ''',
+    Output("quarterly_button", "loading", allow_duplicate=True),
+    Input("quarterly_button", "n_clicks"),
     prevent_initial_call=True
 )

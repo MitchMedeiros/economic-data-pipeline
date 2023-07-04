@@ -15,7 +15,8 @@ class RestAPI:
         for table, endpoint in self.endpoints.items():
             url = self.base_url + endpoint
             response = requests.get(url)
-            if response.status_code == 200: self.data[table] = response.json()
+            if response.status_code == 200: 
+                self.data[table] = response.json()
 
 class DataFetcher:
     @staticmethod
@@ -24,8 +25,8 @@ class DataFetcher:
 
         bea_endpoints = {
             table: (f"?&UserID={my_config.BEA_KEY}"
-                     "&method=GetData"
-                     "&DataSetName=NIPA"
+                    "&method=GetData"
+                    "&DataSetName=NIPA"
                     f"&Frequency={frequency}"
                     f"&TableName={table}"
                     f"&Year={all_years_string}")
@@ -37,10 +38,8 @@ class DataFetcher:
         return bea_api
 
     @staticmethod
-    def fetch_fred_data(selected_fred_tables, start_year, end_year, frequency, aggregation):
+    def fetch_fred_data(selected_fred_tables, start_year, end_year, unit, frequency, aggregation):
         # Monthly data is converted to quarterly data by setting the frequency to 'q' and aggregation method to sum
-        fred_units = 'lin'
-        fred_frequency = frequency
         fred_start_year = f"{start_year}-01-01"
         fred_end_year = f"{end_year}-01-01"
 
@@ -51,10 +50,10 @@ class DataFetcher:
                     f"&api_key={my_config.FRED_KEY}"
                     f"&observation_start={fred_start_year}"
                     f"&observation_end={fred_end_year}"
-                    f"&units={fred_units}"
-                    f"&frequency={fred_frequency}"
+                    f"&units={unit}"
+                    f"&frequency={frequency}"
                     f"&aggregation_method={aggregation}"
-                     "&file_type=json")
+                    "&file_type=json")
             for table in selected_fred_tables
         }
 
@@ -73,7 +72,7 @@ class DataFetcher:
         treasury_api = RestAPI(treasury_base_url, treasury_endpoints)
         treasury_api.fetch_data()
         return treasury_api
-
+    
 def process_bea_table(api, table, filter_metrics, table_names):
     try:
         data = api.data[table]['BEAAPI']['Results']['Data']

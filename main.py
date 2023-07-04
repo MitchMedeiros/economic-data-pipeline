@@ -54,7 +54,7 @@ app.layout = layout.create_layout()
 modals.modal_callbacks(app)
 children.notification_callback(app)
 daily_api_requests.daily_callback(app)
-# monthly_api_requests.monthly_callback(app)
+monthly_api_requests.monthly_callback(app)
 quarterly_api_requests.quarterly_callback(app)
 
 # Deploys the app locally if run_locally is True.

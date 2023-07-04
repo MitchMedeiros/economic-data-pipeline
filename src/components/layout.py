@@ -143,7 +143,8 @@ data_area = dmc.LoadingOverlay(
                                         dbc.Col(dbc.Stack(
                                             [   
                                                 dmc.Text("Monthly Economic Data", color='blue', size=18, weight=600, align='center'),
-                                                data_inputs.fred_monthly_select,                                                
+                                                data_inputs.fred_monthly_select,
+                                                data_inputs.bea_monthly_select,
                                                 dbc.Stack(
                                                     [
                                                         data_inputs.monthly_start_year,

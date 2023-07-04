@@ -33,7 +33,7 @@ def daily_callback(app):
     def request_and_format_daily_data(n_clicks, start_year, end_year, selected_fred_tables, selected_treasury_tables):
         all_years_string = ','.join(str(year) for year in range(start_year, end_year + 1))
 
-        fred_api = methods_functions.DataFetcher.fetch_fred_data(selected_fred_tables, start_year, end_year, 'd', 'lin')
+        fred_api = methods_functions.DataFetcher.fetch_fred_data(selected_fred_tables, start_year, end_year, 'lin', 'd', 'lin')
         treasury_api = methods_functions.DataFetcher.fetch_treasury_data(selected_treasury_tables, all_years_string)
 
         all_dfs = []
@@ -67,7 +67,7 @@ def daily_callback(app):
                     style_data={'color': 'rgba(220, 220, 220, 0.85)'},
                     style_cell={'fontFamily': 'Arial, sans-serif', 'fontSize': '14px'},
                     style_cell_conditional=[{'textAlign': 'center'}],
-                    id='upload_table'
+                    id='daily_dash_table'
                 )
             )
         ], False

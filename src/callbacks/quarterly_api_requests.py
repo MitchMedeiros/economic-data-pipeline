@@ -27,7 +27,8 @@ bea_column_names = {
 fred_column_names = {
     'CPIAUCSL': {'value': "CPI"},
     'PAYEMS': {'value': 'Nonfarm Payrolls (Thousands of Persons)'},
-    'UNRATE': {'value': 'Unemployment Rate'}
+    'UNRATE': {'value': 'Unemployment Rate'},
+    'USSTHPI': {'value': "House Price Index"}
 }
 
 def quarterly_callback(app):
@@ -44,8 +45,8 @@ def quarterly_callback(app):
     def request_and_format_quarterly_data(n_clicks, start_year, end_year, selected_bea_tables, selected_fred_tables):
         all_years_string = ','.join(str(year) for year in range(start_year, end_year + 1))
 
+        fred_api = methods_functions.DataFetcher.fetch_fred_data(selected_fred_tables, start_year, end_year, 'lin', 'q', 'sum')
         bea_api = methods_functions.DataFetcher.fetch_bea_data(selected_bea_tables, all_years_string, 'Q')
-        fred_api = methods_functions.DataFetcher.fetch_fred_data(selected_fred_tables, start_year, end_year, 'q', 'sum')
 
         all_dfs = []
         for table in selected_fred_tables:
@@ -78,7 +79,7 @@ def quarterly_callback(app):
                     style_data={'color': 'rgba(220, 220, 220, 0.85)'},
                     style_cell={'fontFamily': 'Arial, sans-serif', 'fontSize': '14px'},
                     style_cell_conditional=[{'textAlign': 'center'}],
-                    id='upload_table'
+                    id='quarterly_dash_table'
                 )
             )
         ], False

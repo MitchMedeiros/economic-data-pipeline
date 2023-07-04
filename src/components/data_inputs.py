@@ -65,15 +65,32 @@ daily_button = dmc.Button(
 
 fred_monthly_select = dmc.MultiSelect(
     data=[
-        {'label': 'Case-Shiller Home Price Index', 'value': 'CSUSHPINSA'}
+        # {'label': 'Case-Shiller Home Price Index', 'value': 'CSUSHPINSA'},
+        {'label': 'CPI', 'value': 'CPIAUCSL'}
     ],
-    value=['SP500'],
+    value=['CPIAUCSL'],
     label="Federal Reserve Economic Data (FRED) Datasets",
     icon=DashIconify(icon='flat-color-icons:line-chart'),
     searchable=True,
     nothingFound="Dataset not found",
     style={'text-align': 'center'},
     id='fred_monthly_datasets'
+)
+
+bea_monthly_select = dmc.MultiSelect(
+    data=[
+        {'label': 'Personal Income', 'value': 'T20100'},
+        # {'label': "Percent Change in PCE", 'value': 'T20307'},
+        # {'label': "Percent Change in Real PCE", 'value': 'T20301'},
+        # {'label': "PCE Price Index", 'value':'T20304'}
+    ],
+    value=['T20100'],
+    label="Bureau of Economic Analysis (BEA) Datasets",
+    icon=DashIconify(icon='flat-color-icons:line-chart'),
+    searchable=True,
+    nothingFound="Dataset not found",
+    style={'text-align': 'center'},
+    id='bea_monthly_datasets'
 )
 
 monthly_start_year = dmc.NumberInput(
@@ -113,8 +130,7 @@ bea_quarterly_select = dmc.MultiSelect(
         {'label': 'Personal Income', 'value': 'T20100'},
         {'label': "Percent Change in PCE", 'value': 'T20307'},
         {'label': "Percent Change in Real PCE", 'value': 'T20301'},
-        {'label': "PCE Price Index", 'value':'T20304'},
-        {'label': "House Price Index", 'value':'USSTHPI'},
+        {'label': "PCE Price Index", 'value':'T20304'}
     ],
     value=['T10101'],
     label="Bureau of Economic Analysis (BEA) Datasets",
@@ -130,6 +146,7 @@ fred_quarterly_select = dmc.MultiSelect(
         {'label': 'CPI', 'value': 'CPIAUCSL'},
         {'label': 'Nonfarm Payrolls', 'value': 'PAYEMS'},
         {'label': 'Unemployment Rate', 'value': 'UNRATE'},
+        {'label': "House Price Index", 'value':'USSTHPI'}
     ],
     value=['CPIAUCSL'],
     label="Federal Reserve Economic Data (FRED) Datasets",
