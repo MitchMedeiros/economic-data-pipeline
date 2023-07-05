@@ -13,6 +13,7 @@ filter_metric = {
     'T20307': "Personal consumption expenditures (PCE)",
     'T20301': "Personal consumption expenditures (PCE)",
     'T20304': "Personal consumption expenditures (PCE)",
+    'T20600': "Personal income"
 }
 
 bea_column_names = {
@@ -22,7 +23,8 @@ bea_column_names = {
     'T20100': "Personal Income (Millions $)",
     'T20307': "PCE (Quarterly Change)",
     'T20301': "Real PCE (Quarterly Change)",
-    'T20304': "PCEPI"
+    'T20304': "PCEPI",
+    'T20600': 'Personal Income (Millions $)'
 }
 
 fred_column_names = {
@@ -39,35 +41,28 @@ def monthly_callback(app):
         Input('monthly_button', 'n_clicks'),
         State('monthly_start_year_input', 'value'),
         State('monthly_end_year_input', 'value'),
+        State('fred_monthly_datasets', 'value'),
         State('bea_monthly_datasets', 'value'),
-        State('fred_monthly_datasets', 'value'),        
         prevent_initial_call=True
     )
-    def request_and_format_monthly_data(n_clicks, start_year, end_year, selected_bea_tables, selected_fred_tables):
+    def request_and_format_monthly_data(n_clicks, start_year, end_year, selected_fred_tables, selected_bea_tables):
         all_years_string = ','.join(str(year) for year in range(start_year, end_year + 1))
 
-        try:
-            fred_api = methods_functions.DataFetcher.fetch_fred_data(selected_fred_tables, start_year, end_year, 'lin', 'm', 'lin')
-            bea_api = methods_functions.DataFetcher.fetch_bea_data(selected_bea_tables, all_years_string, 'M')
-        except ConnectionError:
-            return dmc.Alert(
-                title="Error: couldn't retrieve US Treasury data at this time. Please try again later.",
-                icon=DashIconify(icon='mingcute:alert-fill'),
-                color='yellow',
-                withCloseButton=True,
-            ), False
+        fred_api = methods_functions.DataFetcher.fetch_fred_data(selected_fred_tables, start_year, end_year, 'lin', 'm', 'avg')
+        bea_api = methods_functions.DataFetcher.fetch_bea_data(selected_bea_tables, all_years_string, 'M')
 
         all_dfs = []
         for table in selected_fred_tables:
             fred_df = methods_functions.process_fred_table(fred_api, table, fred_column_names, monthly=True)
             if fred_df is not None: all_dfs.append(fred_df)
         for table in selected_bea_tables:
-            bea_df = methods_functions.process_bea_table(bea_api, table, filter_metric, bea_column_names)
+            bea_df = methods_functions.process_bea_table(bea_api, table, filter_metric, bea_column_names, monthly=True)
             if bea_df is not None: all_dfs.append(bea_df)
-        
+                
         table_df = all_dfs[0]
         for i in range(1, len(all_dfs)):
             table_df = pd.merge(table_df, all_dfs[i], on='date')
+        table_df['date'] = table_df['date'].astype(str)
         
         return [
             dmc.Text("Monthly Data", weight=550, size='lg', style={'margin-top': '10px', 'margin-bottom': '10px'}),

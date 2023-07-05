@@ -187,8 +187,8 @@ data_area = dmc.LoadingOverlay(
                         dmc.AccordionControl(accordion_header("Check Cleanliness of Data")),
                         dmc.AccordionPanel(
                             [
-                                html.Div(id='daily_table', style={'max-height': '300px', 'overflow-y': 'auto'}),        
-                                html.Div(id='monthly_table', style={'max-height': '300px', 'overflow-y': 'auto'}),                        
+                                html.Div(id='daily_table', style={'max-height': '300px', 'overflow-y': 'auto'}),
+                                html.Div(id='monthly_table', style={'max-height': '300px', 'overflow-y': 'auto'}),
                                 html.Div(id='quarterly_table', style={'max-height': '300px', 'overflow-y': 'auto'}),
                             ]
                         )
@@ -230,7 +230,7 @@ def create_layout():
                         data_area,
                         html.Div(id='dummy_output'),
                         html.Div(id='notification_trigger'),
-                        html.Div(id='notification_output'),
+                        html.Div(id='notification_output')
                     ],
                     fluid=True,
                     className='dbc'

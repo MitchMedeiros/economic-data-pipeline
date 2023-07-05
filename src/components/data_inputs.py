@@ -79,12 +79,12 @@ fred_monthly_select = dmc.MultiSelect(
 
 bea_monthly_select = dmc.MultiSelect(
     data=[
-        {'label': 'Personal Income', 'value': 'T20100'},
+        {'label': 'Personal Income', 'value': 'T20600'},
         # {'label': "Percent Change in PCE", 'value': 'T20307'},
         # {'label': "Percent Change in Real PCE", 'value': 'T20301'},
         # {'label': "PCE Price Index", 'value':'T20304'}
     ],
-    value=['T20100'],
+    value=['T20600'],
     label="Bureau of Economic Analysis (BEA) Datasets",
     icon=DashIconify(icon='flat-color-icons:line-chart'),
     searchable=True,

@@ -73,11 +73,28 @@ class DataFetcher:
         treasury_api.fetch_data()
         return treasury_api
     
-def process_bea_table(api, table, filter_metrics, table_names):
+def process_bea_table(api, table, filter_metrics, table_names, monthly=False):
     try:
         data = api.data[table]['BEAAPI']['Results']['Data']
         df = pd.DataFrame(data, columns=['TimePeriod', 'DataValue', 'METRIC_NAME', 'LineDescription'])
         df = df.loc[df['LineDescription'] == filter_metrics[table]].drop(columns=['LineDescription'])
+
+        # Pivoting the table to have seperate columns for each distinct calculation method of the general economic metric.
+        sliced_dfs = [
+            df.loc[df['METRIC_NAME'] == metric]
+            .drop(columns=['METRIC_NAME'])
+            .reset_index(drop=True)
+            .rename(columns={'DataValue': f'{table_names[table]} - ' + metric})
+            for metric in df['METRIC_NAME'].unique()
+        ]
+        pivoted_df = sliced_dfs[0]
+        for i in range(1, len(sliced_dfs)):
+            pivoted_df = pd.merge(pivoted_df, sliced_dfs[i], on='TimePeriod')
+        pivoted_df.rename(columns={'TimePeriod': 'date'}, inplace=True)
+
+        if monthly:
+                pivoted_df['date'] = pd.to_datetime(pivoted_df['date'], format='%YM%m').dt.to_period('M')
+        return pivoted_df
     except KeyError:
         return dmc.Alert(
             title="Invalid Years: No data is available within the selected years for one of the requested datasets.",
@@ -86,27 +103,12 @@ def process_bea_table(api, table, filter_metrics, table_names):
             withCloseButton=True,
         ), False
 
-    # Pivoting the table to have seperate columns for each distinct calculation method of the general economic metric.
-    sliced_dfs = [
-        df.loc[df['METRIC_NAME'] == metric]
-        .drop(columns=['METRIC_NAME'])
-        .reset_index(drop=True)
-        .rename(columns={'DataValue': f'{table_names[table]} - ' + metric})
-        for metric in df['METRIC_NAME'].unique()
-    ]
-    pivoted_df = sliced_dfs[0]
-    for i in range(1, len(sliced_dfs)):
-        pivoted_df = pd.merge(pivoted_df, sliced_dfs[i], on='TimePeriod')
-    pivoted_df.rename(columns={'TimePeriod': 'date'}, inplace=True)
-    return pivoted_df
-
 def process_fred_table(api, table, column_names, monthly=False, quarterly=False):
     try:
         data = api.data[table]['observations']
         df = pd.DataFrame(data, columns=['date', 'value']).rename(columns=column_names[table])
         if monthly:
-            df['date'] = pd.to_datetime(df['date'])
-            df['date'] = df['date'].dt.month.astype(str) + df['date'].dt.year.astype(str)
+            df['date'] = pd.to_datetime(df['date']).dt.to_period('M')
         if quarterly:
             df['date'] = pd.to_datetime(df['date'])
             df['date'] = df['date'].dt.year.astype(str) + 'Q' + df['date'].dt.quarter.astype(str)
