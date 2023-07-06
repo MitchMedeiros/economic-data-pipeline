@@ -19,7 +19,7 @@ page_header = dbc.Navbar(
                                 dmc.Text(
                                     "Economic and Financial Data",
                                     variant='gradient',
-                                    gradient={'from': '#52b1ff', 'to': '#739dff', 'deg': 45},
+                                    gradient={'from': 'rgb(255, 117, 165)', 'to': 'rgb(245, 134, 255)', 'deg': 45},
                                     style={'font-size': '25px'},
                                     id='page_title'
                                 ),
@@ -32,9 +32,9 @@ page_header = dbc.Navbar(
                                 ),
                                 dmc.Button(
                                     "About",
-                                    leftIcon=DashIconify(icon='ep:info-filled', color='#739dff', height=20),
+                                    leftIcon=DashIconify(icon='ep:info-filled', color='rgb(245, 134, 255)', height=20),
                                     variant='outline',
-                                    color='indigo',
+                                    color='grape',
                                     size='lg',
                                     compact=True,
                                     radius='xl',
@@ -64,7 +64,7 @@ page_header = dbc.Navbar(
                                             size='xl',
                                             radius='xl',
                                             variant='outline',
-                                            color='indigo'
+                                            color='grape'
                                         )
                                     ],
                                     label="GitHub Repository",
@@ -83,7 +83,7 @@ page_header = dbc.Navbar(
                             offLabel=DashIconify(icon='line-md:moon-rising-twotone-loop', width=20),
                             onLabel=DashIconify(icon='line-md:sun-rising-loop', width=20),
                             size='xl',
-                            color='indigo',
+                            color='grape',
                             style={'margin-right': '15px'},
                             id='theme_switch'
                         )
@@ -103,7 +103,7 @@ def accordion_header(displayed_text):
     return dmc.Badge(
         displayed_text,
         variant='gradient',
-        gradient={'from': 'blue', 'to': 'violet'},
+        gradient={'from': 'rgb(229, 125, 255)', 'to': 'rgb(255, 117, 165)'},
         opacity=0.85,
         size='lg',
         radius='md',
@@ -124,7 +124,7 @@ data_area = dmc.LoadingOverlay(
                                     [
                                         dbc.Col(dbc.Stack(
                                             [   
-                                                dmc.Text("Daily Economic Data", color='blue', size=18, weight=600, align='center'),
+                                                dmc.Text("Daily Economic Data", size=18, weight=600, align='center'),
                                                 data_inputs.fred_daily_select,
                                                 data_inputs.treasury_daily_select,
                                                 dbc.Stack(
@@ -142,7 +142,7 @@ data_area = dmc.LoadingOverlay(
                                         # dbc.Col(dmc.Divider(color='indigo', size='md', orientation="vertical", style={"height": '300px'})),
                                         dbc.Col(dbc.Stack(
                                             [   
-                                                dmc.Text("Monthly Economic Data", color='blue', size=18, weight=600, align='center'),
+                                                dmc.Text("Monthly Economic Data", size=18, weight=600, align='center'),
                                                 data_inputs.fred_monthly_select,
                                                 data_inputs.bea_monthly_select,
                                                 dbc.Stack(
@@ -160,7 +160,7 @@ data_area = dmc.LoadingOverlay(
                                         # dbc.Col(dmc.Divider(color='indigo', size='md', orientation="vertical", style={"height": '300px'})),
                                         dbc.Col(dbc.Stack(
                                             [
-                                                dmc.Text("Quarterly Economic Data", color='blue', size=18, weight=600, align='center'),
+                                                dmc.Text("Quarterly Economic Data", size=18, weight=600, align='center'),
                                                 data_inputs.fred_quarterly_select,
                                                 data_inputs.bea_quarterly_select,
                                                 dbc.Stack(
@@ -208,7 +208,14 @@ data_area = dmc.LoadingOverlay(
                         dmc.AccordionPanel()
                     ],
                     value='compare'
-                )
+                ),
+                dmc.AccordionItem(
+                    [
+                        dmc.AccordionControl(accordion_header("Check The Database and Read Tables")),
+                        dmc.AccordionPanel()
+                    ],
+                    value='compare'
+                )                
             ],
             value=['request', 'analyze', 'clean', 'compare'],
             chevronPosition='left',

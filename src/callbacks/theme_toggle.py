@@ -23,7 +23,7 @@ clientside_callback(
     function change_layout_colors(checked) {
         var components_color = {colorScheme: checked ? 'light' : 'dark'};
         var header_color = checked ? '#d5d5d5' : '#2b2b2b';
-        var page_title = checked ? {'from': '#525dff', 'to': '#298dff'} : {'from': '#52b1ff', 'to': '#739dff', 'deg': 45}
+        var page_title = checked ? {'from': 'rgb(252, 62, 211)', 'to': 'rgb(255, 31, 199)', 'deg': 45} : {'from': 'rgb(255, 117, 165)', 'to': 'rgb(245, 134, 255)', 'deg': 45};
 
         return [components_color, header_color, page_title];
     }

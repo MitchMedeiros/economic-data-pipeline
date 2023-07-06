@@ -6,32 +6,24 @@ import pandas as pd
 import src.common.methods_functions as methods_functions
 
 filter_metric = {
-    'T10101': "Gross domestic product",
-    'T10105': "Gross domestic product",
-    'T10107': "Gross domestic product",
-    'T20100': "Personal income",
-    'T20307': "Personal consumption expenditures (PCE)",
-    'T20301': "Personal consumption expenditures (PCE)",
-    'T20304': "Personal consumption expenditures (PCE)",
-    'T20600': "Personal income"
+    'T20600': "Personal income",
+    'T20807': "Personal consumption expenditures (PCE)",
+    'T20801': "Personal consumption expenditures (PCE)",
+    'T20804': "Personal consumption expenditures (PCE)"
 }
 
 bea_column_names = {
-    'T10101': "Real GDP (Quarterly Change)",
-    'T10105': "Total GDP (Millions $)",
-    'T10107': "GDP (Quarterly Change)",
-    'T20100': "Personal Income (Millions $)",
-    'T20307': "PCE (Quarterly Change)",
-    'T20301': "Real PCE (Quarterly Change)",
-    'T20304': "PCEPI",
-    'T20600': 'Personal Income (Millions $)'
+    'T20600': 'Personal Income (Millions $)',
+    'T20807': 'PCE (Monthly Change)',
+    'T20801': 'Real PCE (Monthly Change)',
+    'T20804': "PCEPI"    
 }
 
 fred_column_names = {
     'CPIAUCSL': {'value': "CPI"},
     'PAYEMS': {'value': 'Nonfarm Payrolls (Thousands of Persons)'},
     'UNRATE': {'value': 'Unemployment Rate'},
-    'USSTHPI': {'value': "House Price Index"}
+    'CSUSHPINSA': {'value': "Case-Shiller U.S. Home Price Index"}
 }
 
 def monthly_callback(app):

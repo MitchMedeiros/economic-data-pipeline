@@ -65,7 +65,7 @@ daily_button = dmc.Button(
 
 fred_monthly_select = dmc.MultiSelect(
     data=[
-        # {'label': 'Case-Shiller Home Price Index', 'value': 'CSUSHPINSA'},
+        {'label': 'Case-Shiller Home Price Index', 'value': 'CSUSHPINSA'},
         {'label': 'CPI', 'value': 'CPIAUCSL'}
     ],
     value=['CPIAUCSL'],
@@ -80,9 +80,9 @@ fred_monthly_select = dmc.MultiSelect(
 bea_monthly_select = dmc.MultiSelect(
     data=[
         {'label': 'Personal Income', 'value': 'T20600'},
-        # {'label': "Percent Change in PCE", 'value': 'T20307'},
-        # {'label': "Percent Change in Real PCE", 'value': 'T20301'},
-        # {'label': "PCE Price Index", 'value':'T20304'}
+        {'label': 'Percent Change in PCE', 'value': 'T20807'},
+        {'label': 'Percent Change in Real PCE', 'value': 'T20801'},
+        {'label': 'PCE Price Index', 'value': 'T20804'},
     ],
     value=['T20600'],
     label="Bureau of Economic Analysis (BEA) Datasets",
@@ -124,15 +124,15 @@ monthly_button = dmc.Button(
 
 bea_quarterly_select = dmc.MultiSelect(
     data=[
-        {'label': 'Percent Change in Real GDP', 'value': 'T10101'},
         {'label': 'Percent Change in GDP', 'value': 'T10107'},
+        {'label': 'Percent Change in Real GDP', 'value': 'T10101'},
         {'label': 'Total GDP in Dollars', 'value': 'T10105'},
         {'label': 'Personal Income', 'value': 'T20100'},
         {'label': "Percent Change in PCE", 'value': 'T20307'},
         {'label': "Percent Change in Real PCE", 'value': 'T20301'},
         {'label': "PCE Price Index", 'value':'T20304'}
     ],
-    value=['T10101'],
+    value=['T10107'],
     label="Bureau of Economic Analysis (BEA) Datasets",
     icon=DashIconify(icon='flat-color-icons:line-chart'),
     searchable=True,
