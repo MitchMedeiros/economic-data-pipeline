@@ -211,7 +211,7 @@ data_area = dmc.LoadingOverlay(
                 ),
                 dmc.AccordionItem(
                     [
-                        dmc.AccordionControl(accordion_header("Check The Database and Read Tables")),
+                        dmc.AccordionControl(accordion_header("Check The Database and Query Tables")),
                         dmc.AccordionPanel()
                     ],
                     value='compare'

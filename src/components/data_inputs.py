@@ -1,17 +1,12 @@
 from dash_iconify import DashIconify
 import dash_mantine_components as dmc
 
-try:
-    import my_config as config
-except ImportError:
-    import config
-
 fred_daily_select = dmc.MultiSelect(
     data=[
         {'label': 'S&P 500', 'value': 'SP500'},
         {'label': 'NASDAQ Composite', 'value': 'NASDAQCOM'},
     ],
-    value=['SP500'],
+    value=['SP500', 'NASDAQCOM'],
     label="Federal Reserve Economic Data (FRED) Datasets",
     icon=DashIconify(icon='flat-color-icons:line-chart'),
     searchable=True,
@@ -25,7 +20,7 @@ treasury_daily_select = dmc.MultiSelect(
         {'label': 'Treasury Balance', 'value': 'v1/accounting/dts/dts_table_1'},
         {'label': 'US Debt', 'value': 'v2/accounting/od/debt_to_penny'}
     ],
-    value=['v1/accounting/dts/dts_table_1'],
+    value=['v1/accounting/dts/dts_table_1', 'v2/accounting/od/debt_to_penny'],
     label="US Treasury Datasets",
     icon=DashIconify(icon='flat-color-icons:line-chart'),
     searchable=True,
@@ -60,6 +55,8 @@ daily_button = dmc.Button(
     "Request Selected Datasets",
     leftIcon=DashIconify(icon="icon-park-twotone:data", color="white", width=24),
     variant="gradient",
+    gradient={'from': 'rgb(255, 117, 165)', 'to': 'rgb(245, 134, 255)', 'deg': 45},
+    style={'margin-top': '5px', 'margin-bottom': '10px'},
     id='daily_button'
 )
 
@@ -68,7 +65,7 @@ fred_monthly_select = dmc.MultiSelect(
         {'label': 'Case-Shiller Home Price Index', 'value': 'CSUSHPINSA'},
         {'label': 'CPI', 'value': 'CPIAUCSL'}
     ],
-    value=['CPIAUCSL'],
+    value=['CPIAUCSL', 'CSUSHPINSA'],
     label="Federal Reserve Economic Data (FRED) Datasets",
     icon=DashIconify(icon='flat-color-icons:line-chart'),
     searchable=True,
@@ -84,7 +81,7 @@ bea_monthly_select = dmc.MultiSelect(
         {'label': 'Percent Change in Real PCE', 'value': 'T20801'},
         {'label': 'PCE Price Index', 'value': 'T20804'},
     ],
-    value=['T20600'],
+    value=['T20600', 'T20804'],
     label="Bureau of Economic Analysis (BEA) Datasets",
     icon=DashIconify(icon='flat-color-icons:line-chart'),
     searchable=True,
@@ -119,6 +116,8 @@ monthly_button = dmc.Button(
     "Request Selected Datasets",
     leftIcon=DashIconify(icon="icon-park-twotone:data", color="white", width=24),
     variant="gradient",
+    gradient={'from': 'rgb(255, 117, 165)', 'to': 'rgb(245, 134, 255)', 'deg': 45},
+    style={'margin-top': '5px', 'margin-bottom': '10px'},
     id='monthly_button'
 )
 
@@ -148,7 +147,7 @@ fred_quarterly_select = dmc.MultiSelect(
         {'label': 'Unemployment Rate', 'value': 'UNRATE'},
         {'label': "House Price Index", 'value':'USSTHPI'}
     ],
-    value=['CPIAUCSL'],
+    value=['CPIAUCSL', 'PAYEMS', 'UNRATE'],
     label="Federal Reserve Economic Data (FRED) Datasets",
     icon=DashIconify(icon='flat-color-icons:line-chart'),
     searchable=True,
@@ -183,5 +182,7 @@ quarterly_button = dmc.Button(
     "Request Selected Datasets",
     leftIcon=DashIconify(icon="icon-park-twotone:data", color="white", width=24),
     variant="gradient",
+    style={'margin-top': '5px', 'margin-bottom': '10px'},
+    gradient={'from': 'rgb(255, 117, 165)', 'to': 'rgb(245, 134, 255)', 'deg': 45},
     id='quarterly_button'
 )
