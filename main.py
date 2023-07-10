@@ -4,6 +4,7 @@ from flask_caching import Cache
 
 import src.callbacks.button_loading
 import src.callbacks.children as children
+import src.callbacks.create_dropdown as create_dropdown
 import src.callbacks.daily_api_requests as daily_api_requests
 import src.callbacks.modals as modals
 import src.callbacks.monthly_api_requests as monthly_api_requests
@@ -56,6 +57,7 @@ children.notification_callback(app)
 daily_api_requests.daily_callback(app)
 monthly_api_requests.monthly_callback(app)
 quarterly_api_requests.quarterly_callback(app)
+create_dropdown.table_dropdown_callback(app)
 
 # Deploys the app locally if run_locally is True.
 if __name__ == '__main__' and config.RUN_LOCALLY:

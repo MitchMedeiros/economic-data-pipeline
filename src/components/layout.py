@@ -5,6 +5,8 @@ import dash_mantine_components as dmc
 
 import src.components.data_inputs as data_inputs
 import src.components.modals as modals
+import src.components.table_inputs as table_inputs
+import src.components.cleaning_inputs as cleaning_inputs
 
 # The top bar of the app
 page_header = dbc.Navbar(
@@ -103,8 +105,8 @@ def accordion_header(displayed_text):
     return dmc.Badge(
         displayed_text,
         variant='gradient',
-        gradient={'from': 'rgb(229, 125, 255)', 'to': 'rgb(255, 117, 165)'},
-        opacity=0.85,
+        gradient={'from': 'rgb(192, 135, 192)', 'to': 'rgb(106, 79, 101)'},
+        opacity=0.99,
         size='lg',
         radius='md',
         style={'width': '100%'}
@@ -197,14 +199,26 @@ data_area = dmc.LoadingOverlay(
                 ),
                 dmc.AccordionItem(
                     [
-                        dmc.AccordionControl(accordion_header("Clean Data if Needed")),
-                        dmc.AccordionPanel()
+                        dmc.AccordionControl(accordion_header("Clean The Data and Save to Database")),
+                        dmc.AccordionPanel(
+                            [
+                                dbc.Stack(
+                                    [
+                                        cleaning_inputs.null_checkbox,
+                                        cleaning_inputs.duplicates_checkbox
+                                    ],
+                                    direction='horizontal',
+                                    gap=3
+                                ),
+                                cleaning_inputs.clean_button
+                            ]
+                        )
                     ],
                     value='clean'
                 ),
                 dmc.AccordionItem(
                     [
-                        dmc.AccordionControl(accordion_header("Visualize and Save Data")),
+                        dmc.AccordionControl(accordion_header("Visualize Data")),
                         dmc.AccordionPanel()
                     ],
                     value='compare'
@@ -212,7 +226,12 @@ data_area = dmc.LoadingOverlay(
                 dmc.AccordionItem(
                     [
                         dmc.AccordionControl(accordion_header("Check The Database and Query Tables")),
-                        dmc.AccordionPanel()
+                        dmc.AccordionPanel(
+                            [
+                                table_inputs.tables_button,
+                                table_inputs.tables_select
+                            ]
+                        )
                     ],
                     value='compare'
                 )                
