@@ -1,4 +1,4 @@
-from dash import html
+from dash import html, dcc
 import dash_bootstrap_components as dbc
 from dash_iconify import DashIconify
 import dash_mantine_components as dmc
@@ -178,25 +178,28 @@ data_area = dmc.LoadingOverlay(
                                             gap=3
                                         ))
                                     ]
-                                )
-                            ]
-                        )
-                    ],
-                    value='request'
-                ),
-                dmc.AccordionItem(
-                    [
-                        dmc.AccordionControl(accordion_header("Check Cleanliness of Data")),
-                        dmc.AccordionPanel(
-                            [
+                                ),
                                 html.Div(id='daily_table', style={'max-height': '300px', 'overflow-y': 'auto'}),
                                 html.Div(id='monthly_table', style={'max-height': '300px', 'overflow-y': 'auto'}),
                                 html.Div(id='quarterly_table', style={'max-height': '300px', 'overflow-y': 'auto'}),
                             ]
                         )
                     ],
-                    value='analyze'
+                    value='request'
                 ),
+                # dmc.AccordionItem(
+                #     [
+                #         dmc.AccordionControl(accordion_header("Check Cleanliness of Data")),
+                #         dmc.AccordionPanel(
+                #             [
+                #                 html.Div(id='daily_table', style={'max-height': '300px', 'overflow-y': 'auto'}),
+                #                 html.Div(id='monthly_table', style={'max-height': '300px', 'overflow-y': 'auto'}),
+                #                 html.Div(id='quarterly_table', style={'max-height': '300px', 'overflow-y': 'auto'}),
+                #             ]
+                #         )
+                #     ],
+                #     value='analyze'
+                # ),
                 dmc.AccordionItem(
                     [
                         dmc.AccordionControl(accordion_header("Clean The Data and Save to Database")),
@@ -204,13 +207,21 @@ data_area = dmc.LoadingOverlay(
                             [
                                 dbc.Stack(
                                     [
+                                        cleaning_inputs.table_select,
                                         cleaning_inputs.null_checkbox,
                                         cleaning_inputs.duplicates_checkbox
                                     ],
                                     direction='horizontal',
                                     gap=3
                                 ),
-                                cleaning_inputs.clean_button
+                                dbc.Stack(
+                                    [
+                                        cleaning_inputs.clean_button,
+                                        cleaning_inputs.save_button
+                                    ],
+                                    direction='horizontal',
+                                    gap=3
+                                ),                                
                             ]
                         )
                     ],
@@ -233,10 +244,10 @@ data_area = dmc.LoadingOverlay(
                             ]
                         )
                     ],
-                    value='compare'
+                    value='query'
                 )                
             ],
-            value=['request', 'analyze', 'clean', 'compare'],
+            value=['request', 'clean', 'compare', 'query'],
             chevronPosition='left',
             styles={'chevron': {"&[data-rotate]": {'transform': 'rotate(-90deg)'}}}
         )
@@ -256,7 +267,8 @@ def create_layout():
                         data_area,
                         html.Div(id='dummy_output'),
                         html.Div(id='notification_trigger'),
-                        html.Div(id='notification_output')
+                        html.Div(id='notification_output'),
+                        dcc.Store(id='clean_data')
                     ],
                     fluid=True,
                     className='dbc'
