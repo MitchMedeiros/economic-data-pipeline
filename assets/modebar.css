@@ -2,3 +2,11 @@
 a.modebar-btn {
     font-size: 22px !important;
 }
+
+.general-button {
+    margin-top: 5px;
+}
+
+.general-select {
+    margin-top: 5px;
+}

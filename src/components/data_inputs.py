@@ -56,7 +56,7 @@ daily_button = dmc.Button(
     leftIcon=DashIconify(icon="icon-park-twotone:data", color="white", width=24),
     variant="gradient",
     gradient={'from': 'grape', 'to': 'gray', 'deg': 45},
-    style={'margin-top': '5px', 'margin-bottom': '10px'},
+    className='general-button',
     id='daily_button'
 )
 
@@ -117,7 +117,7 @@ monthly_button = dmc.Button(
     leftIcon=DashIconify(icon="icon-park-twotone:data", color="white", width=24),
     variant="gradient",
     gradient={'from': 'grape', 'to': 'gray', 'deg': 45},
-    style={'margin-top': '5px', 'margin-bottom': '10px'},
+    className='general-button',
     id='monthly_button'
 )
 
@@ -182,7 +182,7 @@ quarterly_button = dmc.Button(
     "Request Selected Datasets",
     leftIcon=DashIconify(icon="icon-park-twotone:data", color="white", width=24),
     variant="gradient",
-    style={'margin-top': '5px', 'margin-bottom': '10px'},
     gradient={'from': 'grape', 'to': 'gray', 'deg': 45},
+    className='general-button',
     id='quarterly_button'
 )

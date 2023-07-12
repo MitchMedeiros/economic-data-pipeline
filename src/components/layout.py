@@ -205,9 +205,9 @@ data_area = dmc.LoadingOverlay(
                         dmc.AccordionControl(accordion_header("Clean The Data and Save to Database")),
                         dmc.AccordionPanel(
                             [
+                                cleaning_inputs.table_select,
                                 dbc.Stack(
                                     [
-                                        cleaning_inputs.table_select,
                                         cleaning_inputs.null_checkbox,
                                         cleaning_inputs.duplicates_checkbox
                                     ],
@@ -240,7 +240,8 @@ data_area = dmc.LoadingOverlay(
                         dmc.AccordionPanel(
                             [
                                 table_inputs.tables_button,
-                                table_inputs.tables_select
+                                table_inputs.tables_select,
+                                table_inputs.table_data_button                               
                             ]
                         )
                     ],
