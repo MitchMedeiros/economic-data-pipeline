@@ -32,3 +32,7 @@ a.modebar-btn {
     max-height: 300px;
     overflow-y: auto;
 }
+
+.general-text {
+    margin-bottom: 10px;
+}

@@ -64,9 +64,9 @@ def daily_callback(app):
             individual_nulls_string = "Columns with Null Values: " + individual_nulls_string
 
         return [
-            dmc.Text("Daily Data", weight=550, size='lg', style={'margin-bottom': '10px'}),
-            dmc.Text(total_nulls_string, weight=410, size='sm', style={'margin-bottom': '10px'}),
-            dmc.Text(individual_nulls_string, weight=410, size='sm', style={'margin-bottom': '10px'}),
+            dmc.Text("Daily Data", weight=550, size='lg', className='general-text'),
+            dmc.Text(total_nulls_string, weight=410, size='sm', className='general-text'),
+            dmc.Text(individual_nulls_string, weight=410, size='sm', className='general-text'),
             html.Div(
                 dash_table.DataTable(
                     data=table_df.to_dict('records'),

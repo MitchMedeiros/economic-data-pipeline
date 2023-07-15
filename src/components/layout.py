@@ -112,6 +112,31 @@ def accordion_header(displayed_text):
         style={'width': '100%'}
     )
 
+def request_data_header(text):
+    return dmc.Text(
+        text,
+        size=18,
+        weight=600,
+        align='center'
+    )
+
+def request_data_column(header_text, *multiselects, year_inputs, button):
+    return dbc.Col(
+        dbc.Stack(
+            [
+                dmc.Text(header_text, size=18, weight=600, align='center'),
+                *multiselects,
+                dbc.Stack(
+                    year_inputs,
+                    direction='horizontal',
+                    gap=3
+                ),
+                button
+            ],
+            gap=3
+        )
+    )
+
 # The main section of the app where data is displayed. Contains three tabs.
 data_area = dmc.LoadingOverlay(
     [
@@ -124,26 +149,32 @@ data_area = dmc.LoadingOverlay(
                             [
                                 dbc.Row(
                                     [
+                                        request_data_column(
+                                            "Daily Economic Data",
+                                            *[data_inputs.fred_daily_select, data_inputs.treasury_daily_select],
+                                            [data_inputs.daily_start_year, data_inputs.daily_end_year],
+                                            data_inputs.daily_button
+                                        ),
+                                        # dbc.Col(dbc.Stack(
+                                        #     [
+                                        #         request_data_header("Daily Economic Data"),
+                                        #         data_inputs.fred_daily_select,
+                                        #         data_inputs.treasury_daily_select,
+                                        #         dbc.Stack(
+                                        #             [
+                                        #                 data_inputs.daily_start_year,
+                                        #                 data_inputs.daily_end_year,
+                                        #             ],
+                                        #             direction='horizontal',
+                                        #             gap=3
+                                        #         ),
+                                        #         data_inputs.daily_button
+                                        #     ],
+                                        #     gap=3
+                                        # )),
                                         dbc.Col(dbc.Stack(
-                                            [   
-                                                dmc.Text("Daily Economic Data", size=18, weight=600, align='center'),
-                                                data_inputs.fred_daily_select,
-                                                data_inputs.treasury_daily_select,
-                                                dbc.Stack(
-                                                    [
-                                                        data_inputs.daily_start_year,
-                                                        data_inputs.daily_end_year,
-                                                    ],
-                                                    direction='horizontal',
-                                                    gap=3
-                                                ),
-                                                data_inputs.daily_button
-                                            ],
-                                            gap=3
-                                        )),
-                                        dbc.Col(dbc.Stack(
-                                            [   
-                                                dmc.Text("Monthly Economic Data", size=18, weight=600, align='center'),
+                                            [
+                                                request_data_header("Monthly Economic Data"),
                                                 data_inputs.fred_monthly_select,
                                                 data_inputs.bea_monthly_select,
                                                 dbc.Stack(
@@ -160,7 +191,7 @@ data_area = dmc.LoadingOverlay(
                                         )),
                                         dbc.Col(dbc.Stack(
                                             [
-                                                dmc.Text("Quarterly Economic Data", size=18, weight=600, align='center'),
+                                                request_data_header("Quarterly Economic Data"),
                                                 data_inputs.fred_quarterly_select,
                                                 data_inputs.bea_quarterly_select,
                                                 dbc.Stack(
