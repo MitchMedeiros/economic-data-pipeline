@@ -5,7 +5,7 @@ tables_button = dmc.Button(
     "Check Database Tables",
     variant="gradient",
     gradient={'from': 'grape', 'to': 'gray', 'deg': 45},
-    style={'margin-top': '5px', 'margin-bottom': '10px'},
+    className='general-button',
     id='tables_button'
 )
 
@@ -14,7 +14,7 @@ tables_select = dmc.Select(
     label="Database Tables",
     searchable=True,
     nothingFound="Table not found",
-    style={'text-align': 'center', 'width': '250px'},
+    className='general-select',
     id='tables_dropdown'
 )
 

@@ -4,9 +4,31 @@ a.modebar-btn {
 }
 
 .general-button {
-    margin-top: 5px;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 .general-select {
-    margin-top: 5px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    text-align: center;
+    width: 250px;
+}
+
+.general-multiselect {
+    text-align: center;
+}
+
+.general-number-input {
+    text-align: center;
+}
+
+.general-checkbox {
+    margin-top: 10px;
+    margin-bottom: 15px;
+}
+
+.general-datatable {
+    max-height: 300px;
+    overflow-y: auto;
 }

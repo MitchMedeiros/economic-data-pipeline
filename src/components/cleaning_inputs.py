@@ -10,22 +10,36 @@ table_select = dmc.Select(
     label="Data",
     searchable=True,
     nothingFound="Table not found",
-    style={'text-align': 'center', 'width': '250px'},
+    className='general-select',
     id='table_select'
 )
 
 null_checkbox = dmc.Checkbox(
     label="Null Values",
     checked=False,
-    style={'margin-top': '10px', 'margin-bottom': '15px'},
+    className='general-checkbox',
     id="null_checkbox"
 )
 
 duplicates_checkbox = dmc.Checkbox(
     label="Duplicate Rows",
     checked=False,
-    style={'margin-top': '10px', 'margin-bottom': '15px'},
+    className='general-checkbox',
     id="duplicates_checkbox"
+)
+
+null_select = dmc.Select(
+    data=[
+        {'label': 'remove the row', 'value': 'none'},
+        {'label': 'average the two adjacent values', 'value': 'two'},
+        {'label': 'average the four adjacent values', 'value': 'four'}
+    ],
+    value='two',
+    label="How to Handle Null Values",
+    searchable=True,
+    nothingFound="Method not found",
+    className='general-select',
+    id='null_select'
 )
 
 clean_button = dmc.Button(

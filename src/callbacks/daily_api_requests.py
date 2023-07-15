@@ -1,5 +1,6 @@
 from dash import dash_table, html, Input, Output, State
 import dash_mantine_components as dmc
+import numpy as np
 import pandas as pd
 
 import src.common.methods_functions as methods_functions
@@ -48,8 +49,24 @@ def daily_callback(app):
         for i in range(1, len(all_dfs)):
             table_df = pd.merge(table_df, all_dfs[i], on='date')
 
+        table_df = table_df.replace('.', np.nan)
+        col_names = table_df.isnull().sum().index
+        col_null_values = table_df.isnull().sum()
+        null_list = []
+        for i in range(len(col_names)):
+            if col_null_values[i] > 0:
+                null_list.append(f"{col_names[i]}: {col_null_values[i]}")
+        
+        total_nulls_string = f"Total Null Values: {table_df.isnull().sum().sum()}"
+        individual_nulls_string = ' | '.join(str(nulls) for nulls in null_list)
+
+        if len(null_list) > 0:
+            individual_nulls_string = "Columns with Null Values: " + individual_nulls_string
+
         return [
             dmc.Text("Daily Data", weight=550, size='lg', style={'margin-bottom': '10px'}),
+            dmc.Text(total_nulls_string, weight=410, size='sm', style={'margin-bottom': '10px'}),
+            dmc.Text(individual_nulls_string, weight=410, size='sm', style={'margin-bottom': '10px'}),
             html.Div(
                 dash_table.DataTable(
                     data=table_df.to_dict('records'),
@@ -69,5 +86,5 @@ def daily_callback(app):
                     style_cell_conditional=[{'textAlign': 'center'}],
                     id='daily_dash_table'
                 )
-            )
+            ),
         ], False

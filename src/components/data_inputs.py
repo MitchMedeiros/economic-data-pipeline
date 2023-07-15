@@ -11,7 +11,7 @@ fred_daily_select = dmc.MultiSelect(
     icon=DashIconify(icon='flat-color-icons:line-chart'),
     searchable=True,
     nothingFound="Dataset not found",
-    style={'text-align': 'center'},
+    className='general-multiselect',
     id='fred_daily_datasets'
 )
 
@@ -25,7 +25,7 @@ treasury_daily_select = dmc.MultiSelect(
     icon=DashIconify(icon='flat-color-icons:line-chart'),
     searchable=True,
     nothingFound="Dataset not found",
-    style={'text-align': 'center'},
+    className='general-multiselect',
     id='treasury_daily_datasets'
 )
 
@@ -36,7 +36,7 @@ daily_start_year = dmc.NumberInput(
     max=2023,
     step=1,
     icon=DashIconify(icon='clarity:date-line'),
-    style={'text-align': 'center'},
+    className='general-number-input',
     id='daily_start_year_input'
 )
 
@@ -47,7 +47,7 @@ daily_end_year = dmc.NumberInput(
     max=2023,
     step=1,
     icon=DashIconify(icon='clarity:date-line'),
-    style={'text-align': 'center'},
+    className='general-number-input',
     id='daily_end_year_input'
 )
 
@@ -70,7 +70,7 @@ fred_monthly_select = dmc.MultiSelect(
     icon=DashIconify(icon='flat-color-icons:line-chart'),
     searchable=True,
     nothingFound="Dataset not found",
-    style={'text-align': 'center'},
+    className='general-multiselect',
     id='fred_monthly_datasets'
 )
 
@@ -86,7 +86,7 @@ bea_monthly_select = dmc.MultiSelect(
     icon=DashIconify(icon='flat-color-icons:line-chart'),
     searchable=True,
     nothingFound="Dataset not found",
-    style={'text-align': 'center'},
+    className='general-multiselect',
     id='bea_monthly_datasets'
 )
 
@@ -97,7 +97,7 @@ monthly_start_year = dmc.NumberInput(
     max=2023,
     step=1,
     icon=DashIconify(icon='clarity:date-line'),
-    style={'text-align': 'center'},
+    className='general-number-input',
     id='monthly_start_year_input'
 )
 
@@ -108,7 +108,7 @@ monthly_end_year = dmc.NumberInput(
     max=2023,
     step=1,
     icon=DashIconify(icon='clarity:date-line'),
-    style={'text-align': 'center'},
+    className='general-number-input',
     id='monthly_end_year_input'
 )
 
@@ -136,7 +136,7 @@ bea_quarterly_select = dmc.MultiSelect(
     icon=DashIconify(icon='flat-color-icons:line-chart'),
     searchable=True,
     nothingFound="Dataset not found",
-    style={'text-align': 'center'},
+    className='general-multiselect',
     id='bea_quarterly_datasets'
 )
 
@@ -152,7 +152,7 @@ fred_quarterly_select = dmc.MultiSelect(
     icon=DashIconify(icon='flat-color-icons:line-chart'),
     searchable=True,
     nothingFound="Dataset not found",
-    style={'text-align': 'center'},
+    className='general-multiselect',
     id='fred_quarterly_datasets'
 )
 
@@ -163,7 +163,7 @@ quarterly_start_year = dmc.NumberInput(
     max=2023,
     step=1,
     icon=DashIconify(icon='clarity:date-line'),
-    style={'text-align': 'center'},
+    className='general-number-input',
     id='quarterly_start_year_input'
 )
 
@@ -174,7 +174,7 @@ quarterly_end_year = dmc.NumberInput(
     max=2023,
     step=1,
     icon=DashIconify(icon='clarity:date-line'),
-    style={'text-align': 'center'},
+    className='general-number-input',
     id='quarterly_end_year_input'
 )
 

@@ -141,7 +141,6 @@ data_area = dmc.LoadingOverlay(
                                             ],
                                             gap=3
                                         )),
-                                        # dbc.Col(dmc.Divider(color='indigo', size='md', orientation="vertical", style={"height": '300px'})),
                                         dbc.Col(dbc.Stack(
                                             [   
                                                 dmc.Text("Monthly Economic Data", size=18, weight=600, align='center'),
@@ -159,7 +158,6 @@ data_area = dmc.LoadingOverlay(
                                             ],
                                             gap=3
                                         )),
-                                        # dbc.Col(dmc.Divider(color='indigo', size='md', orientation="vertical", style={"height": '300px'})),
                                         dbc.Col(dbc.Stack(
                                             [
                                                 dmc.Text("Quarterly Economic Data", size=18, weight=600, align='center'),
@@ -179,27 +177,14 @@ data_area = dmc.LoadingOverlay(
                                         ))
                                     ]
                                 ),
-                                html.Div(id='daily_table', style={'max-height': '300px', 'overflow-y': 'auto'}),
-                                html.Div(id='monthly_table', style={'max-height': '300px', 'overflow-y': 'auto'}),
-                                html.Div(id='quarterly_table', style={'max-height': '300px', 'overflow-y': 'auto'}),
+                                html.Div(id='daily_table', className='general-datatable'),
+                                html.Div(id='monthly_table', className='general-datatable'),
+                                html.Div(id='quarterly_table', className='general-datatable'),
                             ]
                         )
                     ],
                     value='request'
                 ),
-                # dmc.AccordionItem(
-                #     [
-                #         dmc.AccordionControl(accordion_header("Check Cleanliness of Data")),
-                #         dmc.AccordionPanel(
-                #             [
-                #                 html.Div(id='daily_table', style={'max-height': '300px', 'overflow-y': 'auto'}),
-                #                 html.Div(id='monthly_table', style={'max-height': '300px', 'overflow-y': 'auto'}),
-                #                 html.Div(id='quarterly_table', style={'max-height': '300px', 'overflow-y': 'auto'}),
-                #             ]
-                #         )
-                #     ],
-                #     value='analyze'
-                # ),
                 dmc.AccordionItem(
                     [
                         dmc.AccordionControl(accordion_header("Clean The Data and Save to Database")),
@@ -214,6 +199,7 @@ data_area = dmc.LoadingOverlay(
                                     direction='horizontal',
                                     gap=3
                                 ),
+                                cleaning_inputs.null_select,
                                 dbc.Stack(
                                     [
                                         cleaning_inputs.clean_button,
@@ -221,7 +207,7 @@ data_area = dmc.LoadingOverlay(
                                     ],
                                     direction='horizontal',
                                     gap=3
-                                ),                                
+                                )
                             ]
                         )
                     ],
