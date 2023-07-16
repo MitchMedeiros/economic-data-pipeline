@@ -120,7 +120,7 @@ def request_data_header(text):
         align='center'
     )
 
-def request_data_column(header_text, *multiselects, year_inputs, button):
+def request_data_column(header_text, year_inputs, button, *multiselects):
     return dbc.Col(
         dbc.Stack(
             [
@@ -137,7 +137,7 @@ def request_data_column(header_text, *multiselects, year_inputs, button):
         )
     )
 
-# The main section of the app where data is displayed. Contains three tabs.
+# The main section of the app.
 data_area = dmc.LoadingOverlay(
     [
         dmc.AccordionMultiple(
@@ -151,61 +151,22 @@ data_area = dmc.LoadingOverlay(
                                     [
                                         request_data_column(
                                             "Daily Economic Data",
-                                            *[data_inputs.fred_daily_select, data_inputs.treasury_daily_select],
                                             [data_inputs.daily_start_year, data_inputs.daily_end_year],
-                                            data_inputs.daily_button
+                                            data_inputs.daily_button,
+                                            *(data_inputs.fred_daily_select, data_inputs.treasury_daily_select)
                                         ),
-                                        # dbc.Col(dbc.Stack(
-                                        #     [
-                                        #         request_data_header("Daily Economic Data"),
-                                        #         data_inputs.fred_daily_select,
-                                        #         data_inputs.treasury_daily_select,
-                                        #         dbc.Stack(
-                                        #             [
-                                        #                 data_inputs.daily_start_year,
-                                        #                 data_inputs.daily_end_year,
-                                        #             ],
-                                        #             direction='horizontal',
-                                        #             gap=3
-                                        #         ),
-                                        #         data_inputs.daily_button
-                                        #     ],
-                                        #     gap=3
-                                        # )),
-                                        dbc.Col(dbc.Stack(
-                                            [
-                                                request_data_header("Monthly Economic Data"),
-                                                data_inputs.fred_monthly_select,
-                                                data_inputs.bea_monthly_select,
-                                                dbc.Stack(
-                                                    [
-                                                        data_inputs.monthly_start_year,
-                                                        data_inputs.monthly_end_year,
-                                                    ],
-                                                    direction='horizontal',
-                                                    gap=3
-                                                ),
-                                                data_inputs.monthly_button
-                                            ],
-                                            gap=3
-                                        )),
-                                        dbc.Col(dbc.Stack(
-                                            [
-                                                request_data_header("Quarterly Economic Data"),
-                                                data_inputs.fred_quarterly_select,
-                                                data_inputs.bea_quarterly_select,
-                                                dbc.Stack(
-                                                    [
-                                                        data_inputs.quarterly_start_year,
-                                                        data_inputs.quarterly_end_year,
-                                                    ],
-                                                    direction='horizontal',
-                                                    gap=3
-                                                ),
-                                                data_inputs.quarterly_button
-                                            ],
-                                            gap=3
-                                        ))
+                                        request_data_column(
+                                            "Monthly Economic Data",
+                                            [data_inputs.monthly_start_year, data_inputs.monthly_end_year],
+                                            data_inputs.monthly_button,
+                                            *(data_inputs.fred_monthly_select, data_inputs.bea_monthly_select)
+                                        ),                                        
+                                        request_data_column(
+                                            "Quarterly Economic Data",
+                                            [data_inputs.quarterly_start_year, data_inputs.quarterly_end_year],
+                                            data_inputs.quarterly_button,
+                                            *(data_inputs.fred_quarterly_select, data_inputs.bea_quarterly_select)
+                                        )
                                     ]
                                 ),
                                 html.Div(id='daily_table', className='general-datatable'),
@@ -274,7 +235,7 @@ data_area = dmc.LoadingOverlay(
     radius='sm'
 )
 
-# The app layout containing all displayed components. Provided to app.layout in main.py
+# A function which generates the app layout, containing all displayed components. Provided to app.layout in main.py
 def create_layout():
     return dmc.MantineProvider(
         dmc.NotificationsProvider(
