@@ -1,8 +1,3 @@
-/*Adjusts the size of the icons in the modebars of the Plotly graphs*/
-a.modebar-btn {
-    font-size: 22px !important;
-}
-
 .general-button {
     margin-top: 10px;
     margin-bottom: 10px;
