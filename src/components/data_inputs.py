@@ -25,7 +25,11 @@ daily_start_year = component_functions.year("Start Year", 1980, 'daily_start_yea
 
 daily_end_year = component_functions.year("End Year", 2023, 'daily_end_year_input')
 
-daily_button = component_functions.button("Request Selected Datasets", 'daily_button', None)
+daily_button = component_functions.button(
+    "Request Selected Datasets",
+    'daily_button',
+    component_functions.icon('icon-park-twotone:data-display')
+)
 
 # Monthly Economic Data Components
 fred_monthly_select = component_functions.multiselect(
@@ -54,7 +58,11 @@ monthly_start_year = component_functions.year("Start Year", 1980, 'monthly_start
 
 monthly_end_year = component_functions.year("End Year", 2023, 'monthly_end_year_input')
 
-monthly_button = component_functions.button("Request Selected Datasets", 'monthly_button', None)
+monthly_button = component_functions.button(
+    "Request Selected Datasets",
+    'monthly_button',
+    component_functions.icon('icon-park-twotone:data-display')
+)
 
 # Quarterly  Economic Data Components
 bea_quarterly_select = component_functions.multiselect(
@@ -88,4 +96,8 @@ quarterly_start_year = component_functions.year("Start Year", 1950, 'quarterly_s
 
 quarterly_end_year = component_functions.year("End Year", 2023, 'quarterly_end_year_input')
 
-quarterly_button = component_functions.button("Request Selected Datasets", 'quarterly_button', None)
+quarterly_button = component_functions.button(
+    "Request Selected Datasets",
+    'quarterly_button',
+    component_functions.icon('icon-park-twotone:data-display')
+)

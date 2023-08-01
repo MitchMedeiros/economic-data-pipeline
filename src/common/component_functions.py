@@ -1,3 +1,4 @@
+import dash_bootstrap_components as dbc
 from dash_iconify import DashIconify
 import dash_mantine_components as dmc
 
@@ -25,7 +26,7 @@ def year(input_label, default_value, input_id, min_year=1940, max_year=2023):
         id=input_id
     )
 
-def button(button_label, button_id, icon=DashIconify(icon="icon-park-twotone:data", color="white", width=24)):
+def button(button_label, button_id, icon=None):
     return dmc.Button(
         button_label,
         leftIcon=icon,
@@ -52,4 +53,47 @@ def select(select_options, default_value, select_label, select_id):
         nothingFound="Option not found",
         className='general-select',
         id=select_id
+    )
+
+def accordion_header(displayed_text):
+    return dmc.Badge(
+        displayed_text,
+        variant='gradient',
+        gradient={'from': 'rgb(192, 135, 192)', 'to': 'rgb(106, 79, 101)'},
+        opacity=0.99,
+        size='lg',
+        radius='md',
+        style={'width': '100%'}
+    )
+
+def request_data_header(text):
+    return dmc.Text(
+        text,
+        size=18,
+        weight=600,
+        align='center'
+    )
+
+def request_data_column(header_text, year_inputs, button, *multiselects):
+    return dbc.Col(
+        dbc.Stack(
+            [
+                dmc.Text(header_text, size=18, weight=600, align='center'),
+                *multiselects,
+                dbc.Stack(
+                    year_inputs,
+                    direction='horizontal',
+                    gap=3
+                ),
+                button
+            ],
+            gap=3
+        )
+    )
+
+def icon(icon_name):
+    return DashIconify(
+        icon=icon_name,
+        color="white",
+        width=24
     )

@@ -63,9 +63,11 @@ def daily_callback(app):
         if len(null_list) > 0:
             individual_nulls_string = "Columns with Null Values: " + individual_nulls_string
 
+        # methods_functions.format_and_count_nulls(table_df)
+
         return [
             dmc.Text("Daily Data", weight=550, size='lg', className='general-text'),
-            dmc.Text(total_nulls_string, weight=410, size='sm', className='general-text'),
+            dmc.Text(f"Total Null Values: {table_df.isnull().sum().sum()}", weight=410, size='sm', className='general-text'),
             dmc.Text(individual_nulls_string, weight=410, size='sm', className='general-text'),
             html.Div(
                 dash_table.DataTable(

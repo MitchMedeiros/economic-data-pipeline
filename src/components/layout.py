@@ -3,13 +3,43 @@ import dash_bootstrap_components as dbc
 from dash_iconify import DashIconify
 import dash_mantine_components as dmc
 
+import src.common.component_functions as component_functions
 import src.components.data_inputs as data_inputs
 import src.components.modals as modals
 import src.components.table_inputs as table_inputs
 import src.components.cleaning_inputs as cleaning_inputs
 
+github_button = html.A(
+    [
+        dmc.Tooltip(
+            [
+                dmc.ThemeIcon(
+                    DashIconify(icon='line-md:github-loop', width=30),
+                    size='xl',
+                    radius='xl',
+                    variant='outline',
+                    color='grape'
+                )
+            ],
+            label="GitHub Repository",
+            position="bottom"
+        )
+    ],
+    href="https://github.com/MitchMedeiros/economic-data",
+    target="_blank"
+)
+
+theme_switch = dmc.Switch(
+    offLabel=DashIconify(icon='line-md:moon-rising-twotone-loop', width=20),
+    onLabel=DashIconify(icon='line-md:sun-rising-loop', width=20),
+    size='xl',
+    color='grape',
+    style={'margin-right': '15px'},
+    id='theme_switch'
+)
+
 # The top bar of the app
-page_header = dbc.Navbar(
+header = dbc.Navbar(
     [
         dbc.Row(
             [
@@ -17,7 +47,7 @@ page_header = dbc.Navbar(
                     [
                         dbc.Stack(
                             [
-                                html.Img(src='assets/favicon.ico', height="35px", style={'margin-left': '25px', 'margin-right': '25px'}),
+                                html.Img(src='assets/favicon.ico', height="32px", style={'margin-left': '25px', 'margin-right': '25px'}),
                                 dmc.Text(
                                     "Economic and Financial Data",
                                     variant='gradient',
@@ -34,7 +64,7 @@ page_header = dbc.Navbar(
                                 ),
                                 dmc.Button(
                                     "About",
-                                    leftIcon=DashIconify(icon='ep:info-filled', color='rgb(245, 134, 255)', height=20),
+                                    leftIcon=DashIconify(icon='ep:info-filled', color='rgb(245, 134, 255)', width=20),
                                     variant='outline',
                                     color='grape',
                                     size='lg',
@@ -55,42 +85,8 @@ page_header = dbc.Navbar(
         ),
         dbc.Row(
             [
-                dbc.Col(
-                    [
-                        html.A(
-                            [
-                                dmc.Tooltip(
-                                    [
-                                        dmc.ThemeIcon(
-                                            DashIconify(icon='line-md:github-loop', width=30),
-                                            size='xl',
-                                            radius='xl',
-                                            variant='outline',
-                                            color='grape'
-                                        )
-                                    ],
-                                    label="GitHub Repository",
-                                    position="bottom"
-                                )
-                            ],
-                            href="https://github.com/MitchMedeiros/economic-data",
-                            target="_blank"
-                        )
-                    ],
-                    style={'margin-right': '40px', 'margin-left': '20px'}
-                ),
-                dbc.Col(
-                    [
-                        dmc.Switch(
-                            offLabel=DashIconify(icon='line-md:moon-rising-twotone-loop', width=20),
-                            onLabel=DashIconify(icon='line-md:sun-rising-loop', width=20),
-                            size='xl',
-                            color='grape',
-                            style={'margin-right': '15px'},
-                            id='theme_switch'
-                        )
-                    ]
-                )
+                dbc.Col(github_button, style={'margin-right': '40px', 'margin-left': '20px'}),
+                dbc.Col(theme_switch)
             ],
             className="g-0 ms-auto flex-nowrap mt-3 mt-md-0",
             align="center"
@@ -101,67 +97,31 @@ page_header = dbc.Navbar(
     id='page_header'
 )
 
-def accordion_header(displayed_text):
-    return dmc.Badge(
-        displayed_text,
-        variant='gradient',
-        gradient={'from': 'rgb(192, 135, 192)', 'to': 'rgb(106, 79, 101)'},
-        opacity=0.99,
-        size='lg',
-        radius='md',
-        style={'width': '100%'}
-    )
-
-def request_data_header(text):
-    return dmc.Text(
-        text,
-        size=18,
-        weight=600,
-        align='center'
-    )
-
-def request_data_column(header_text, year_inputs, button, *multiselects):
-    return dbc.Col(
-        dbc.Stack(
-            [
-                dmc.Text(header_text, size=18, weight=600, align='center'),
-                *multiselects,
-                dbc.Stack(
-                    year_inputs,
-                    direction='horizontal',
-                    gap=3
-                ),
-                button
-            ],
-            gap=3
-        )
-    )
-
 # The main section of the app.
-data_area = dmc.LoadingOverlay(
+accordion = dmc.LoadingOverlay(
     [
         dmc.AccordionMultiple(
             [
                 dmc.AccordionItem(
                     [
-                        dmc.AccordionControl(accordion_header("Request Data")),
+                        dmc.AccordionControl(component_functions.accordion_header("Request Data")),
                         dmc.AccordionPanel(
                             [
                                 dbc.Row(
                                     [
-                                        request_data_column(
+                                        component_functions.request_data_column(
                                             "Daily Economic Data",
                                             [data_inputs.daily_start_year, data_inputs.daily_end_year],
                                             data_inputs.daily_button,
                                             *(data_inputs.fred_daily_select, data_inputs.treasury_daily_select)
                                         ),
-                                        request_data_column(
+                                        component_functions.request_data_column(
                                             "Monthly Economic Data",
                                             [data_inputs.monthly_start_year, data_inputs.monthly_end_year],
                                             data_inputs.monthly_button,
                                             *(data_inputs.fred_monthly_select, data_inputs.bea_monthly_select)
                                         ),                                        
-                                        request_data_column(
+                                        component_functions.request_data_column(
                                             "Quarterly Economic Data",
                                             [data_inputs.quarterly_start_year, data_inputs.quarterly_end_year],
                                             data_inputs.quarterly_button,
@@ -179,7 +139,7 @@ data_area = dmc.LoadingOverlay(
                 ),
                 dmc.AccordionItem(
                     [
-                        dmc.AccordionControl(accordion_header("Clean The Data and Save to Database")),
+                        dmc.AccordionControl(component_functions.accordion_header("Clean The Data and Save to Database")),
                         dmc.AccordionPanel(
                             [
                                 cleaning_inputs.table_select,
@@ -207,14 +167,14 @@ data_area = dmc.LoadingOverlay(
                 ),
                 dmc.AccordionItem(
                     [
-                        dmc.AccordionControl(accordion_header("Visualize Data")),
+                        dmc.AccordionControl(component_functions.accordion_header("Visualize Data")),
                         dmc.AccordionPanel()
                     ],
                     value='compare'
                 ),
                 dmc.AccordionItem(
                     [
-                        dmc.AccordionControl(accordion_header("Check The Database and Query Tables")),
+                        dmc.AccordionControl(component_functions.accordion_header("Check The Database and Query Tables")),
                         dmc.AccordionPanel(
                             [
                                 table_inputs.tables_button,
@@ -242,8 +202,8 @@ def create_layout():
             [
                 dmc.Container(
                     [
-                        page_header,
-                        data_area,
+                        header,
+                        accordion,
                         html.Div(id='dummy_output'),
                         html.Div(id='notification_trigger'),
                         html.Div(id='notification_output'),

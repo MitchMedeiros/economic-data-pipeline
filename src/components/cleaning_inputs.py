@@ -26,6 +26,14 @@ null_select = component_functions.select(
     'null_select'
 )
 
-clean_button = component_functions.button("Clean the Data", 'clean_button', None)
+clean_button = component_functions.button(
+    "Clean the Data",
+    'clean_button',
+    component_functions.icon('mdi:database-edit-outline')
+)
 
-save_button = component_functions.button("Save to Database", 'save_button')
+save_button = component_functions.button(
+    "Save to Database",
+    'save_button',
+    component_functions.icon('majesticons:data-plus-line')
+)

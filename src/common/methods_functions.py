@@ -1,5 +1,6 @@
 from dash_iconify import DashIconify
 import dash_mantine_components as dmc
+import numpy as np
 import pandas as pd
 import requests
 
@@ -136,3 +137,18 @@ def process_treasury_table(api, table, table_columns, column_names):
             withCloseButton=True,
         ), False
     return df
+
+def format_and_count_nulls(df):
+    df = df.replace('.', np.nan)
+    col_names = df.isnull().sum().index
+    col_null_values = df.isnull().sum()
+    null_list = []
+    for i in range(len(col_names)):
+        if col_null_values[i] > 0:
+            null_list.append(f"{col_names[i]}: {col_null_values[i]}")
+    
+    total_nulls_string = f"Total Null Values: {df.isnull().sum().sum()}"
+    individual_nulls_string = ' | '.join(str(nulls) for nulls in null_list)
+
+    if len(null_list) > 0:
+        individual_nulls_string = "Columns with Null Values: " + individual_nulls_string
