@@ -59,6 +59,7 @@ def quarterly_callback(app):
         table_df = all_dfs[0]
         for i in range(1, len(all_dfs)):
             table_df = pd.merge(table_df, all_dfs[i], on='date')
+        table_df['date'] = table_df['date'].astype(str)
         
         return [
             dmc.Text("Quarterly Data", weight=550, size='lg', style={'margin-top': '10px', 'margin-bottom': '10px'}),

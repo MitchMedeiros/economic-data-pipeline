@@ -22,7 +22,7 @@ class RestAPI:
 class DataFetcher:
     @staticmethod
     def fetch_bea_data(selected_bea_tables, all_years_string, frequency):
-        bea_base_url = f"https://apps.bea.gov/api/data/"
+        bea_base_url = "https://apps.bea.gov/api/data/"
 
         bea_endpoints = {
             table: (f"?&UserID={my_config.BEA_KEY}"
@@ -67,7 +67,7 @@ class DataFetcher:
         treasury_base_url = "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/"
 
         treasury_endpoints = {
-            f'{table}': f"{table}?&filter=record_fiscal_year:in:({dates})&page[size]=10000" for table in selected_treasury_tables
+            table: f"{table}?&filter=record_fiscal_year:in:({dates})&page[size]=10000" for table in selected_treasury_tables
         }
 
         treasury_api = RestAPI(treasury_base_url, treasury_endpoints)
@@ -152,3 +152,65 @@ def format_and_count_nulls(df):
 
     if len(null_list) > 0:
         individual_nulls_string = "Columns with Null Values: " + individual_nulls_string
+
+class DataProcessor:
+    def __init__(self, fred_api, treasury_api, fred_column_names, treasury_column_names):
+        self.fred_api = fred_api
+        self.treasury_api = treasury_api
+        self.fred_column_names = fred_column_names
+        self.treasury_column_names = treasury_column_names
+        self.all_dfs = []
+
+    def process_fred_table(self, table):
+        try:
+            data = self.fred_api.data[table]['observations']
+            df = pd.DataFrame(data, columns=['date', 'value']).rename(columns=self.fred_column_names[table])
+            return df
+        except KeyError:
+            return None
+
+    def process_treasury_table(self, table, treasury_columns):
+        try:
+            data = self.treasury_api.data[table]['data']
+            df = pd.DataFrame(data, columns=treasury_columns[table]).rename(columns=self.treasury_column_names[table])
+
+            if table == 'v1/accounting/dts/dts_table_1':
+                df = df.loc[df['account_type'] == 'Federal Reserve Account'].drop(columns=['account_type']).reset_index(drop=True)
+            return df
+        except KeyError:
+            return None
+
+    def process_selected_fred_tables(self, selected_fred_tables):
+        for table in selected_fred_tables:
+            fred_df = self.process_fred_table(table)
+            if fred_df is not None:
+                self.all_dfs.append(fred_df)
+
+    def process_selected_treasury_tables(self, selected_treasury_tables, treasury_columns):
+        for table in selected_treasury_tables:
+            treasury_df = self.process_treasury_table(table, treasury_columns)
+            if treasury_df is not None:
+                self.all_dfs.append(treasury_df)
+
+    def merge_dataframes(self):
+        table_df = self.all_dfs[0]
+        for i in range(1, len(self.all_dfs)):
+            table_df = pd.merge(table_df, self.all_dfs[i], on='date')
+
+        return table_df
+
+    def generate_null_report(self, table_df):
+        table_df = table_df.replace('.', np.nan)
+        col_null_values = table_df.isnull().sum()
+        null_list = []
+        for col_name, null_count in col_null_values.items():
+            if null_count > 0:
+                null_list.append(f"{col_name}: {null_count}")
+        
+        total_nulls_string = f"Total Null Values: {table_df.isnull().sum().sum()}"
+        individual_nulls_string = ' | '.join(null_list)
+
+        if len(null_list) > 0:
+            individual_nulls_string = "Columns with Null Values: " + individual_nulls_string
+        
+        return total_nulls_string, individual_nulls_string
