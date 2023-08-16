@@ -44,11 +44,11 @@ def quarterly_callback(app):
     )
     def request_and_format_quarterly_data(n_clicks, start_year, end_year, selected_bea_tables, selected_fred_tables):
         all_years_string = ','.join(str(year) for year in range(start_year, end_year + 1))
+        all_dfs = []
 
         fred_api = methods_functions.DataFetcher.fetch_fred_data(selected_fred_tables, start_year, end_year, 'lin', 'q', 'sum')
         bea_api = methods_functions.DataFetcher.fetch_bea_data(selected_bea_tables, all_years_string, 'Q')
 
-        all_dfs = []
         for table in selected_fred_tables:
             fred_df = methods_functions.process_fred_table(fred_api, table, fred_column_names, quarterly=True)
             if fred_df is not None: all_dfs.append(fred_df)

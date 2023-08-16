@@ -104,39 +104,39 @@ def process_bea_table(api, table, filter_metrics, table_names, monthly=False):
             withCloseButton=True,
         ), False
 
-def process_fred_table(api, table, column_names, monthly=False, quarterly=False):
-    try:
-        data = api.data[table]['observations']
-        df = pd.DataFrame(data, columns=['date', 'value']).rename(columns=column_names[table])
-        if monthly:
-            df['date'] = pd.to_datetime(df['date']).dt.to_period('M')
-        if quarterly:
-            df['date'] = pd.to_datetime(df['date'])
-            df['date'] = df['date'].dt.year.astype(str) + 'Q' + df['date'].dt.quarter.astype(str)
-        return df
-    except KeyError:
-        return dmc.Alert(
-            title="Invalid Years: No data is available within the selected years for one of the requested datasets.",
-            icon=DashIconify(icon='mingcute:alert-fill'),
-            color='yellow',
-            withCloseButton=True,
-        ), False
+# def process_fred_table(api, table, column_names, monthly=False, quarterly=False):
+#     try:
+#         data = api.data[table]['observations']
+#         df = pd.DataFrame(data, columns=['date', 'value']).rename(columns=column_names[table])
+#         if monthly:
+#             df['date'] = pd.to_datetime(df['date']).dt.to_period('M')
+#         if quarterly:
+#             df['date'] = pd.to_datetime(df['date'])
+#             df['date'] = df['date'].dt.year.astype(str) + 'Q' + df['date'].dt.quarter.astype(str)
+#         return df
+#     except KeyError:
+#         return dmc.Alert(
+#             title="Invalid Years: No data is available within the selected years for one of the requested datasets.",
+#             icon=DashIconify(icon='mingcute:alert-fill'),
+#             color='yellow',
+#             withCloseButton=True,
+#         ), False
 
-def process_treasury_table(api, table, table_columns, column_names):
-    try:
-        data = api.data[table]['data']
-        df = pd.DataFrame(data, columns=table_columns[table]).rename(columns=column_names[table])
+# def process_treasury_table(api, table, table_columns, column_names):
+#     try:
+#         data = api.data[table]['data']
+#         df = pd.DataFrame(data, columns=table_columns[table]).rename(columns=column_names[table])
 
-        if table == 'v1/accounting/dts/dts_table_1':
-            df = df.loc[df['account_type'] == 'Federal Reserve Account'].drop(columns=['account_type']).reset_index(drop=True)
-    except KeyError:
-        return dmc.Alert(
-            title="Invalid Years: No data is available within the selected years for one of the requested datasets.",
-            icon=DashIconify(icon='mingcute:alert-fill'),
-            color='yellow',
-            withCloseButton=True,
-        ), False
-    return df
+#         if table == 'v1/accounting/dts/dts_table_1':
+#             df = df.loc[df['account_type'] == 'Federal Reserve Account'].drop(columns=['account_type']).reset_index(drop=True)
+#     except KeyError:
+#         return dmc.Alert(
+#             title="Invalid Years: No data is available within the selected years for one of the requested datasets.",
+#             icon=DashIconify(icon='mingcute:alert-fill'),
+#             color='yellow',
+#             withCloseButton=True,
+#         ), False
+#     return df
 
 def format_and_count_nulls(df):
     df = df.replace('.', np.nan)
@@ -153,21 +153,53 @@ def format_and_count_nulls(df):
     if len(null_list) > 0:
         individual_nulls_string = "Columns with Null Values: " + individual_nulls_string
 
-class DataProcessor:
-    def __init__(self, fred_api, treasury_api, fred_column_names, treasury_column_names):
+class DataCleaner:
+    def __init__(self, fred_api=None, treasury_api=None, bea_api=None, fred_column_names=None,
+                 treasury_column_names=None, bea_column_names=None, bea_filter_metrics=None):
         self.fred_api = fred_api
         self.treasury_api = treasury_api
+        self.bea_api = bea_api
         self.fred_column_names = fred_column_names
         self.treasury_column_names = treasury_column_names
+        self.bea_column_names = bea_column_names
+        self.bea_filter_metrics = bea_filter_metrics
         self.all_dfs = []
 
-    def process_fred_table(self, table):
+    def process_fred_table(self, table, column_names, interval='daily'):
         try:
             data = self.fred_api.data[table]['observations']
-            df = pd.DataFrame(data, columns=['date', 'value']).rename(columns=self.fred_column_names[table])
+            df = pd.DataFrame(data, columns=['date', 'value']).rename(columns=column_names[table])
+            if interval == 'daily':
+                pass
+            if interval == 'monthly':
+                df['date'] = pd.to_datetime(df['date']).dt.to_period('M')
+            if interval == 'quarterly':
+                df['date'] = pd.to_datetime(df['date'])
+                df['date'] = df['date'].dt.year.astype(str) + 'Q' + df['date'].dt.quarter.astype(str)
             return df
         except KeyError:
-            return None
+            return dmc.Alert(
+                title="Invalid Years: No data is available within the selected years for one of the requested datasets.",
+                icon=DashIconify(icon='mingcute:alert-fill'),
+                color='yellow',
+                withCloseButton=True,
+            ), False
+
+    def process_treasury_table(self, table, treasury_columns):
+        try:
+            data = self.treasury_api.data[table]['data']
+            df = pd.DataFrame(data, columns=treasury_columns[table]).rename(columns=self.treasury_column_names[table])
+
+            if table == 'v1/accounting/dts/dts_table_1':
+                df = df.loc[df['account_type'] == 'Federal Reserve Account'].drop(columns=['account_type']).reset_index(drop=True)
+            return df
+        except KeyError:
+            return dmc.Alert(
+                title="Invalid Years: No data is available within the selected years for one of the requested datasets.",
+                icon=DashIconify(icon='mingcute:alert-fill'),
+                color='yellow',
+                withCloseButton=True,
+            ), False
 
     def process_treasury_table(self, table, treasury_columns):
         try:

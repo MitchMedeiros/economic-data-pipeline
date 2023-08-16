@@ -33,11 +33,13 @@ def daily_callback(app):
     )
     def request_and_format_daily_data(n_clicks, start_year, end_year, selected_fred_tables, selected_treasury_tables):
         all_years_string = ','.join(str(year) for year in range(start_year, end_year + 1))
+        all_dfs = []
 
+        # Makes multiple requests for json data from the FRED and Treasury APIs
         fred_api = methods_functions.DataFetcher.fetch_fred_data(selected_fred_tables, start_year, end_year, 'lin', 'd', 'lin')
         treasury_api = methods_functions.DataFetcher.fetch_treasury_data(selected_treasury_tables, all_years_string)
 
-        all_dfs = []
+        # Cleans the returned json data and creates DataFrames for them. The methods differ based on the original formatting.
         for table in selected_fred_tables:
             fred_df = methods_functions.process_fred_table(fred_api, table, fred_column_names)
             if fred_df is not None: all_dfs.append(fred_df)
