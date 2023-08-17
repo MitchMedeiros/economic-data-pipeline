@@ -4,7 +4,7 @@ import pandas as pd
 
 import src.common.methods_functions as methods_functions
 
-filter_metric = {
+bea_filter_metric = {
     'T10101': "Gross domestic product",
     'T10105': "Gross domestic product",
     'T10107': "Gross domestic product",
@@ -53,7 +53,7 @@ def quarterly_callback(app):
             fred_df = methods_functions.process_fred_table(fred_api, table, fred_column_names, quarterly=True)
             if fred_df is not None: all_dfs.append(fred_df)
         for table in selected_bea_tables:
-            bea_df = methods_functions.process_bea_table(bea_api, table, filter_metric, bea_column_names)
+            bea_df = methods_functions.process_bea_table(bea_api, table, bea_filter_metric, bea_column_names)
             if bea_df is not None: all_dfs.append(bea_df)
 
         table_df = all_dfs[0]

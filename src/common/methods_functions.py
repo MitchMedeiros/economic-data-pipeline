@@ -73,36 +73,160 @@ class DataFetcher:
         treasury_api = RestAPI(treasury_base_url, treasury_endpoints)
         treasury_api.fetch_data()
         return treasury_api
-    
-def process_bea_table(api, table, filter_metrics, table_names, monthly=False):
-    try:
-        data = api.data[table]['BEAAPI']['Results']['Data']
-        df = pd.DataFrame(data, columns=['TimePeriod', 'DataValue', 'METRIC_NAME', 'LineDescription'])
-        df = df.loc[df['LineDescription'] == filter_metrics[table]].drop(columns=['LineDescription'])
 
-        # Pivoting the table to have seperate columns for each distinct calculation method of the general economic metric.
-        sliced_dfs = [
-            df.loc[df['METRIC_NAME'] == metric]
-            .drop(columns=['METRIC_NAME'])
-            .reset_index(drop=True)
-            .rename(columns={'DataValue': f'{table_names[table]} - ' + metric})
-            for metric in df['METRIC_NAME'].unique()
-        ]
-        pivoted_df = sliced_dfs[0]
-        for i in range(1, len(sliced_dfs)):
-            pivoted_df = pd.merge(pivoted_df, sliced_dfs[i], on='TimePeriod')
-        pivoted_df.rename(columns={'TimePeriod': 'date'}, inplace=True)
+class DataCleaner:
+    def __init__(self, time_interval, fred_api=None, fred_column_names=None, bea_api=None, bea_column_names=None,
+                 bea_filter_metrics=None, treasury_api=None, treasury_column_names=None, treasury_columns=None):
+        self.time_interval = time_interval
+        self.all_dfs = []
+        self.fred_api = fred_api
+        self.fred_column_names = fred_column_names
+        self.bea_api = bea_api
+        self.bea_column_names = bea_column_names
+        self.bea_filter_metrics = bea_filter_metrics
+        self.treasury_api = treasury_api
+        self.treasury_column_names = treasury_column_names
+        self.treasury_columns = treasury_columns
 
-        if monthly:
+    def process_fred_table(self, table):
+        try:
+            data = self.fred_api.data[table]['observations']
+            df = pd.DataFrame(data, columns=['date', 'value']).rename(columns=self.fred_column_names[table])
+
+            if self.time_interval == 'monthly':
+                df['date'] = pd.to_datetime(df['date']).dt.to_period('M')
+
+            if self.time_interval == 'quarterly':
+                df['date'] = pd.to_datetime(df['date'])
+                df['date'] = df['date'].dt.year.astype(str) + 'Q' + df['date'].dt.quarter.astype(str)
+            return df
+        except KeyError:
+            return dmc.Alert(
+                title="Invalid Years: No data is available within the selected years for one of the requested datasets.",
+                icon=DashIconify(icon='mingcute:alert-fill'),
+                color='yellow',
+                withCloseButton=True,
+            ), False
+        
+    def process_bea_table(self, table):
+        try:
+            data = self.bea_api.data[table]['BEAAPI']['Results']['Data']
+            df = pd.DataFrame(data, columns=['TimePeriod', 'DataValue', 'METRIC_NAME', 'LineDescription'])
+            df = df.loc[df['LineDescription'] == self.bea_filter_metrics[table]].drop(columns=['LineDescription'])
+
+            # Pivoting the table to have seperate columns for each distinct calculation method of the general economic metric.
+            sliced_dfs = [
+                df.loc[df['METRIC_NAME'] == metric]
+                .drop(columns=['METRIC_NAME'])
+                .reset_index(drop=True)
+                .rename(columns={'DataValue': f'{self.bea_column_names[table]} - ' + metric})
+                for metric in df['METRIC_NAME'].unique()
+            ]
+            pivoted_df = sliced_dfs[0]
+
+            for i in range(1, len(sliced_dfs)):
+                pivoted_df = pd.merge(pivoted_df, sliced_dfs[i], on='TimePeriod')
+            pivoted_df.rename(columns={'TimePeriod': 'date'}, inplace=True)
+
+            if self.time_interval == 'monthly':
                 pivoted_df['date'] = pd.to_datetime(pivoted_df['date'], format='%YM%m').dt.to_period('M')
-        return pivoted_df
-    except KeyError:
-        return dmc.Alert(
-            title="Invalid Years: No data is available within the selected years for one of the requested datasets.",
-            icon=DashIconify(icon='mingcute:alert-fill'),
-            color='yellow',
-            withCloseButton=True,
-        ), False
+            return pivoted_df
+        except KeyError:
+            return dmc.Alert(
+                title="Invalid Years: No data is available within the selected years for one of the requested datasets.",
+                icon=DashIconify(icon='mingcute:alert-fill'),
+                color='yellow',
+                withCloseButton=True,
+            ), False
+
+    def process_treasury_table(self, table):
+        try:
+            data = self.treasury_api.data[table]['data']
+            df = pd.DataFrame(data, columns=self.treasury_columns[table]).rename(columns=self.treasury_column_names[table])
+
+            if table == 'v1/accounting/dts/dts_table_1':
+                df = df.loc[df['account_type'] == 'Federal Reserve Account'].drop(columns=['account_type']).reset_index(drop=True)
+            return df
+        except KeyError:
+            return dmc.Alert(
+                title="Invalid Years: No data is available within the selected years for one of the requested datasets.",
+                icon=DashIconify(icon='mingcute:alert-fill'),
+                color='yellow',
+                withCloseButton=True,
+            ), False
+
+    def process_all_fred_tables(self, selected_fred_tables):
+        for table in selected_fred_tables:
+            fred_df = self.process_fred_table(table)
+
+            if fred_df is not None:
+                self.all_dfs.append(fred_df)
+    
+    def process_all_bea_tables(self, selected_bea_tables):
+        for table in selected_bea_tables:
+            bea_df = self.process_bea_table(table)
+
+            if bea_df is not None:
+                self.all_dfs.append(bea_df)
+
+    def process_all_treasury_tables(self, selected_treasury_tables):
+        for table in selected_treasury_tables:
+            treasury_df = self.process_treasury_table(table)
+
+            if treasury_df is not None:
+                self.all_dfs.append(treasury_df)
+
+    def merge_dataframes(self):
+        merged_df = self.all_dfs[0]
+        for i in range(1, len(self.all_dfs)):
+            merged_df = pd.merge(merged_df, self.all_dfs[i], on='date')
+        return merged_df
+
+    def generate_null_report(self, table_df):
+        table_df = table_df.replace('.', np.nan)
+        col_null_values = table_df.isnull().sum()
+        null_list = []
+        for col_name, null_count in col_null_values.items():
+            if null_count > 0:
+                null_list.append(f"{col_name}: {null_count}")
+        
+        total_nulls_string = f"Total Null Values: {table_df.isnull().sum().sum()}"
+        individual_nulls_string = ' | '.join(null_list)
+
+        if len(null_list) > 0:
+            individual_nulls_string = "Columns with Null Values: " + individual_nulls_string
+        
+        return total_nulls_string, individual_nulls_string
+    
+# def process_bea_table(api, table, filter_metrics, table_names, monthly=False):
+#     try:
+#         data = api.data[table]['BEAAPI']['Results']['Data']
+#         df = pd.DataFrame(data, columns=['TimePeriod', 'DataValue', 'METRIC_NAME', 'LineDescription'])
+#         df = df.loc[df['LineDescription'] == filter_metrics[table]].drop(columns=['LineDescription'])
+
+#         # Pivoting the table to have seperate columns for each distinct calculation method of the general economic metric.
+#         sliced_dfs = [
+#             df.loc[df['METRIC_NAME'] == metric]
+#             .drop(columns=['METRIC_NAME'])
+#             .reset_index(drop=True)
+#             .rename(columns={'DataValue': f'{table_names[table]} - ' + metric})
+#             for metric in df['METRIC_NAME'].unique()
+#         ]
+#         pivoted_df = sliced_dfs[0]
+#         for i in range(1, len(sliced_dfs)):
+#             pivoted_df = pd.merge(pivoted_df, sliced_dfs[i], on='TimePeriod')
+#         pivoted_df.rename(columns={'TimePeriod': 'date'}, inplace=True)
+
+#         if monthly:
+#                 pivoted_df['date'] = pd.to_datetime(pivoted_df['date'], format='%YM%m').dt.to_period('M')
+#         return pivoted_df
+#     except KeyError:
+#         return dmc.Alert(
+#             title="Invalid Years: No data is available within the selected years for one of the requested datasets.",
+#             icon=DashIconify(icon='mingcute:alert-fill'),
+#             color='yellow',
+#             withCloseButton=True,
+#         ), False
 
 # def process_fred_table(api, table, column_names, monthly=False, quarterly=False):
 #     try:
@@ -138,111 +262,17 @@ def process_bea_table(api, table, filter_metrics, table_names, monthly=False):
 #         ), False
 #     return df
 
-def format_and_count_nulls(df):
-    df = df.replace('.', np.nan)
-    col_names = df.isnull().sum().index
-    col_null_values = df.isnull().sum()
-    null_list = []
-    for i in range(len(col_names)):
-        if col_null_values[i] > 0:
-            null_list.append(f"{col_names[i]}: {col_null_values[i]}")
+# def format_and_count_nulls(df):
+#     df = df.replace('.', np.nan)
+#     col_names = df.isnull().sum().index
+#     col_null_values = df.isnull().sum()
+#     null_list = []
+#     for i in range(len(col_names)):
+#         if col_null_values[i] > 0:
+#             null_list.append(f"{col_names[i]}: {col_null_values[i]}")
     
-    total_nulls_string = f"Total Null Values: {df.isnull().sum().sum()}"
-    individual_nulls_string = ' | '.join(str(nulls) for nulls in null_list)
+#     total_nulls_string = f"Total Null Values: {df.isnull().sum().sum()}"
+#     individual_nulls_string = ' | '.join(str(nulls) for nulls in null_list)
 
-    if len(null_list) > 0:
-        individual_nulls_string = "Columns with Null Values: " + individual_nulls_string
-
-class DataCleaner:
-    def __init__(self, fred_api=None, treasury_api=None, bea_api=None, fred_column_names=None,
-                 treasury_column_names=None, bea_column_names=None, bea_filter_metrics=None):
-        self.fred_api = fred_api
-        self.treasury_api = treasury_api
-        self.bea_api = bea_api
-        self.fred_column_names = fred_column_names
-        self.treasury_column_names = treasury_column_names
-        self.bea_column_names = bea_column_names
-        self.bea_filter_metrics = bea_filter_metrics
-        self.all_dfs = []
-
-    def process_fred_table(self, table, column_names, interval='daily'):
-        try:
-            data = self.fred_api.data[table]['observations']
-            df = pd.DataFrame(data, columns=['date', 'value']).rename(columns=column_names[table])
-            if interval == 'daily':
-                pass
-            if interval == 'monthly':
-                df['date'] = pd.to_datetime(df['date']).dt.to_period('M')
-            if interval == 'quarterly':
-                df['date'] = pd.to_datetime(df['date'])
-                df['date'] = df['date'].dt.year.astype(str) + 'Q' + df['date'].dt.quarter.astype(str)
-            return df
-        except KeyError:
-            return dmc.Alert(
-                title="Invalid Years: No data is available within the selected years for one of the requested datasets.",
-                icon=DashIconify(icon='mingcute:alert-fill'),
-                color='yellow',
-                withCloseButton=True,
-            ), False
-
-    def process_treasury_table(self, table, treasury_columns):
-        try:
-            data = self.treasury_api.data[table]['data']
-            df = pd.DataFrame(data, columns=treasury_columns[table]).rename(columns=self.treasury_column_names[table])
-
-            if table == 'v1/accounting/dts/dts_table_1':
-                df = df.loc[df['account_type'] == 'Federal Reserve Account'].drop(columns=['account_type']).reset_index(drop=True)
-            return df
-        except KeyError:
-            return dmc.Alert(
-                title="Invalid Years: No data is available within the selected years for one of the requested datasets.",
-                icon=DashIconify(icon='mingcute:alert-fill'),
-                color='yellow',
-                withCloseButton=True,
-            ), False
-
-    def process_treasury_table(self, table, treasury_columns):
-        try:
-            data = self.treasury_api.data[table]['data']
-            df = pd.DataFrame(data, columns=treasury_columns[table]).rename(columns=self.treasury_column_names[table])
-
-            if table == 'v1/accounting/dts/dts_table_1':
-                df = df.loc[df['account_type'] == 'Federal Reserve Account'].drop(columns=['account_type']).reset_index(drop=True)
-            return df
-        except KeyError:
-            return None
-
-    def process_selected_fred_tables(self, selected_fred_tables):
-        for table in selected_fred_tables:
-            fred_df = self.process_fred_table(table)
-            if fred_df is not None:
-                self.all_dfs.append(fred_df)
-
-    def process_selected_treasury_tables(self, selected_treasury_tables, treasury_columns):
-        for table in selected_treasury_tables:
-            treasury_df = self.process_treasury_table(table, treasury_columns)
-            if treasury_df is not None:
-                self.all_dfs.append(treasury_df)
-
-    def merge_dataframes(self):
-        table_df = self.all_dfs[0]
-        for i in range(1, len(self.all_dfs)):
-            table_df = pd.merge(table_df, self.all_dfs[i], on='date')
-
-        return table_df
-
-    def generate_null_report(self, table_df):
-        table_df = table_df.replace('.', np.nan)
-        col_null_values = table_df.isnull().sum()
-        null_list = []
-        for col_name, null_count in col_null_values.items():
-            if null_count > 0:
-                null_list.append(f"{col_name}: {null_count}")
-        
-        total_nulls_string = f"Total Null Values: {table_df.isnull().sum().sum()}"
-        individual_nulls_string = ' | '.join(null_list)
-
-        if len(null_list) > 0:
-            individual_nulls_string = "Columns with Null Values: " + individual_nulls_string
-        
-        return total_nulls_string, individual_nulls_string
+#     if len(null_list) > 0:
+#         individual_nulls_string = "Columns with Null Values: " + individual_nulls_string

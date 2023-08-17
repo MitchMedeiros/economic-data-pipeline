@@ -5,7 +5,7 @@ import pandas as pd
 
 import src.common.methods_functions as methods_functions
 
-filter_metric = {
+bea_filter_metric = {
     'T20600': "Personal income",
     'T20807': "Personal consumption expenditures (PCE)",
     'T20801': "Personal consumption expenditures (PCE)",
@@ -48,13 +48,15 @@ def monthly_callback(app):
             fred_df = methods_functions.process_fred_table(fred_api, table, fred_column_names, monthly=True)
             if fred_df is not None: all_dfs.append(fred_df)
         for table in selected_bea_tables:
-            bea_df = methods_functions.process_bea_table(bea_api, table, filter_metric, bea_column_names, monthly=True)
+            bea_df = methods_functions.process_bea_table(bea_api, table, bea_filter_metric, bea_column_names, monthly=True)
             if bea_df is not None: all_dfs.append(bea_df)
                 
         table_df = all_dfs[0]
         for i in range(1, len(all_dfs)):
             table_df = pd.merge(table_df, all_dfs[i], on='date')
         table_df['date'] = table_df['date'].astype(str)
+
+        # monthly_request = methods_functions.
         
         return [
             dmc.Text("Monthly Data", weight=550, size='lg', style={'margin-top': '10px', 'margin-bottom': '10px'}),
