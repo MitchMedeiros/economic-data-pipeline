@@ -2,7 +2,7 @@ from dash import dash_table, html, Input, Output, State
 import dash_mantine_components as dmc
 import pandas as pd
 
-import src.common.methods_functions as methods_functions
+import src.common.api_callbacks as api_callbacks
 
 bea_filter_metric = {
     'T10101': "Gross domestic product",
@@ -46,14 +46,14 @@ def quarterly_callback(app):
         all_years_string = ','.join(str(year) for year in range(start_year, end_year + 1))
         all_dfs = []
 
-        fred_api = methods_functions.DataFetcher.fetch_fred_data(selected_fred_tables, start_year, end_year, 'lin', 'q', 'sum')
-        bea_api = methods_functions.DataFetcher.fetch_bea_data(selected_bea_tables, all_years_string, 'Q')
+        fred_api = api_callbacks.DataFetcher.fetch_fred_data(selected_fred_tables, start_year, end_year, 'lin', 'q', 'sum')
+        bea_api = api_callbacks.DataFetcher.fetch_bea_data(selected_bea_tables, all_years_string, 'Q')
 
         for table in selected_fred_tables:
-            fred_df = methods_functions.process_fred_table(fred_api, table, fred_column_names, quarterly=True)
+            fred_df = api_callbacks.process_fred_table(fred_api, table, fred_column_names, quarterly=True)
             if fred_df is not None: all_dfs.append(fred_df)
         for table in selected_bea_tables:
-            bea_df = methods_functions.process_bea_table(bea_api, table, bea_filter_metric, bea_column_names)
+            bea_df = api_callbacks.process_bea_table(bea_api, table, bea_filter_metric, bea_column_names)
             if bea_df is not None: all_dfs.append(bea_df)
 
         table_df = all_dfs[0]

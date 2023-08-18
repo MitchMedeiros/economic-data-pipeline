@@ -3,22 +3,8 @@ import dash_mantine_components as dmc
 import numpy as np
 import pandas as pd
 
-import src.common.methods_functions as methods_functions
-
-treasury_columns = {
-    'v1/accounting/dts/dts_table_1': ['record_date', 'close_today_bal', 'account_type'],
-    'v2/accounting/od/debt_to_penny': ['record_date', 'tot_pub_debt_out_amt']
-}
-
-fred_column_names = {
-    'SP500': {'value': "S&P 500 Value ($)"},
-    'NASDAQCOM': {'value': "Nasdaq Composite Value ($)"}
-}
-
-treasury_column_names = {
-    'v1/accounting/dts/dts_table_1': {'record_date': 'date', 'close_today_bal': 'Daily Treasury Balance (Millions $)'},
-    'v2/accounting/od/debt_to_penny': {'record_date': 'date', 'tot_pub_debt_out_amt': 'Outstanding US Debt ($)'}
-}
+import src.common.api_callbacks as api_callbacks
+import src.common.component_functions as component_functions
 
 def daily_callback(app):
     @app.callback(
@@ -32,13 +18,41 @@ def daily_callback(app):
         prevent_initial_call=True
     )
     def request_and_format_daily_data(n_clicks, start_year, end_year, selected_fred_tables, selected_treasury_tables):
+        treasury_columns = {
+            'v1/accounting/dts/dts_table_1': ['record_date', 'close_today_bal', 'account_type'],
+            'v2/accounting/od/debt_to_penny': ['record_date', 'tot_pub_debt_out_amt']
+        }
+
+        fred_column_names = {
+            'SP500': {'value': "S&P 500 Value ($)"},
+            'NASDAQCOM': {'value': "Nasdaq Composite Value ($)"}
+        }
+
+        treasury_column_names = {
+            'v1/accounting/dts/dts_table_1': {'record_date': 'date', 'close_today_bal': 'Daily Treasury Balance (Millions $)'},
+            'v2/accounting/od/debt_to_penny': {'record_date': 'date', 'tot_pub_debt_out_amt': 'Outstanding US Debt ($)'}
+        }
+
         all_years_string = ','.join(str(year) for year in range(start_year, end_year + 1))
 
-        fred_api = methods_functions.DataFetcher.fetch_fred_data(selected_fred_tables, start_year, end_year, 'lin', 'd', 'lin')
-        treasury_api = methods_functions.DataFetcher.fetch_treasury_data(selected_treasury_tables, all_years_string)
+        fred_api = api_callbacks.DataFetcher.fetch_fred_data(selected_fred_tables, start_year, end_year, 'lin', 'd', 'lin')
+        treasury_api = api_callbacks.DataFetcher.fetch_treasury_data(selected_treasury_tables, all_years_string)
 
-        daily_request = methods_functions.DataCleaner('daily', fred_api=fred_api, fred_column_names=fred_column_names,
-                                                        treasury_api=treasury_api, treasury_column_names=treasury_column_names)
+        daily_request = api_callbacks.DataCleaner(
+            time_interval='daily',
+            fred_api=fred_api,
+            fred_column_names=fred_column_names,
+            treasury_api=treasury_api,
+            treasury_column_names=treasury_column_names,
+            treasury_columns=treasury_columns
+        )
+        daily_request.process_all_fred_tables(selected_fred_tables)
+        daily_request.process_all_treasury_tables(selected_treasury_tables)
+        table_df = daily_request.merge_dataframes()
+        null_report = daily_request.generate_null_report(table_df)
+        total_nulls_string = f"Total Null Values: {daily_request.total_null_count}"
+        
+        return component_functions.datatable("Daily Data", total_nulls_string, null_report, table_df), False
 
         # all_dfs = []
 
@@ -58,44 +72,42 @@ def daily_callback(app):
         # for i in range(1, len(all_dfs)):
         #     table_df = pd.merge(table_df, all_dfs[i], on='date')
 
-        table_df = table_df.replace('.', np.nan)
-        col_names = table_df.isnull().sum().index
-        col_null_values = table_df.isnull().sum()
-        null_list = []
-        for i in range(len(col_names)):
-            if col_null_values[i] > 0:
-                null_list.append(f"{col_names[i]}: {col_null_values[i]}")
+        # table_df = table_df.replace('.', np.nan)
+        # col_names = table_df.isnull().sum().index
+        # col_null_values = table_df.isnull().sum()
+        # null_list = []
+        # for i in range(len(col_names)):
+        #     if col_null_values[i] > 0:
+        #         null_list.append(f"{col_names[i]}: {col_null_values[i]}")
         
-        total_nulls_string = f"Total Null Values: {table_df.isnull().sum().sum()}"
-        individual_nulls_string = ' | '.join(str(nulls) for nulls in null_list)
+        # total_nulls_string = f"Total Null Values: {table_df.isnull().sum().sum()}"
+        # individual_nulls_string = ' | '.join(str(nulls) for nulls in null_list)
 
-        if len(null_list) > 0:
-            individual_nulls_string = "Columns with Null Values: " + individual_nulls_string
+        # if len(null_list) > 0:
+        #     individual_nulls_string = "Columns with Null Values: " + individual_nulls_string
 
-        # methods_functions.format_and_count_nulls(table_df)
-
-        return [
-            dmc.Text("Daily Data", weight=550, size='lg', className='general-text'),
-            dmc.Text(f"Total Null Values: {table_df.isnull().sum().sum()}", weight=410, size='sm', className='general-text'),
-            dmc.Text(individual_nulls_string, weight=410, size='sm', className='general-text'),
-            html.Div(
-                dash_table.DataTable(
-                    data=table_df.to_dict('records'),
-                    columns=[{'name': str(i), 'id': str(i)} for i in table_df.columns],
-                    fill_width=False,
-                    cell_selectable=False,
-                    style_as_list_view=True,
-                    style_header={
-                        'color': 'rgba(220, 220, 220, 0.95)',
-                        'padding': '10px',
-                        'fontFamily': 'Arial, sans-serif',
-                        'fontSize': '14px',
-                        'fontWeight': 'bold'
-                    },
-                    style_data={'color': 'rgba(220, 220, 220, 0.85)'},
-                    style_cell={'fontFamily': 'Arial, sans-serif', 'fontSize': '14px'},
-                    style_cell_conditional=[{'textAlign': 'center'}],
-                    id='daily_dash_table'
-                )
-            ),
-        ], False
+        # return [
+        #     dmc.Text("Daily Data", weight=550, size='lg', className='general-text'),
+        #     dmc.Text(f"Total Null Values: {table_df.isnull().sum().sum()}", weight=410, size='sm', className='general-text'),
+        #     dmc.Text(individual_nulls_string, weight=410, size='sm', className='general-text'),
+        #     html.Div(
+        #         dash_table.DataTable(
+        #             data=table_df.to_dict('records'),
+        #             columns=[{'name': str(i), 'id': str(i)} for i in table_df.columns],
+        #             fill_width=False,
+        #             cell_selectable=False,
+        #             style_as_list_view=True,
+        #             style_header={
+        #                 'color': 'rgba(220, 220, 220, 0.95)',
+        #                 'padding': '10px',
+        #                 'fontFamily': 'Arial, sans-serif',
+        #                 'fontSize': '14px',
+        #                 'fontWeight': 'bold'
+        #             },
+        #             style_data={'color': 'rgba(220, 220, 220, 0.85)'},
+        #             style_cell={'fontFamily': 'Arial, sans-serif', 'fontSize': '14px'},
+        #             style_cell_conditional=[{'textAlign': 'center'}],
+        #             id='daily_dash_table'
+        #         )
+        #     ),
+        # ], False

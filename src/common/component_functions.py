@@ -1,3 +1,4 @@
+from dash import dash_table, html
 import dash_bootstrap_components as dbc
 from dash_iconify import DashIconify
 import dash_mantine_components as dmc
@@ -97,3 +98,30 @@ def icon(icon_name):
         color="white",
         width=24
     )
+
+def datatable(header, total_null_values, null_columns_string, df):
+    return [
+        dmc.Text(header, weight=550, size='lg', style={'margin-top': '10px', 'margin-bottom': '10px'}),
+        dmc.Text(total_null_values, weight=410, size='sm', className='general-text'),
+        dmc.Text(null_columns_string, weight=410, size='sm', className='general-text'),
+        html.Div(
+            dash_table.DataTable(
+                data=df.to_dict('records'),
+                columns=[{'name': str(i), 'id': str(i)} for i in df.columns],
+                fill_width=False,
+                cell_selectable=False,
+                style_as_list_view=True,
+                style_header={
+                    'color': 'rgba(220, 220, 220, 0.95)',
+                    'padding': '10px',
+                    'fontFamily': 'Arial, sans-serif',
+                    'fontSize': '14px',
+                    'fontWeight': 'bold'
+                },
+                style_data={'color': 'rgba(220, 220, 220, 0.85)'},
+                style_cell={'fontFamily': 'Arial, sans-serif', 'fontSize': '14px'},
+                style_cell_conditional=[{'textAlign': 'center'}],
+                id='monthly_dash_table'
+            )
+        )
+    ]
