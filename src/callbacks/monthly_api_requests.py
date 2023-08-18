@@ -39,27 +39,21 @@ def monthly_callback(app):
     )
     def request_and_format_monthly_data(n_clicks, start_year, end_year, selected_fred_tables, selected_bea_tables):
         all_years_string = ','.join(str(year) for year in range(start_year, end_year + 1))
-        all_dfs = []
-
         fred_api = methods_functions.DataFetcher.fetch_fred_data(selected_fred_tables, start_year, end_year, 'lin', 'm', 'avg')
         bea_api = methods_functions.DataFetcher.fetch_bea_data(selected_bea_tables, all_years_string, 'M')
 
-        for table in selected_fred_tables:
-            fred_df = methods_functions.process_fred_table(fred_api, table, fred_column_names, monthly=True)
-            if fred_df is not None: all_dfs.append(fred_df)
-        for table in selected_bea_tables:
-            bea_df = methods_functions.process_bea_table(bea_api, table, bea_filter_metric, bea_column_names, monthly=True)
-            if bea_df is not None: all_dfs.append(bea_df)
-                
-        table_df = all_dfs[0]
-        for i in range(1, len(all_dfs)):
-            table_df = pd.merge(table_df, all_dfs[i], on='date')
-        table_df['date'] = table_df['date'].astype(str)
-
-        # monthly_request = methods_functions.
+        monthly_request = methods_functions.DataCleaner('monthly', fred_api=fred_api, fred_column_names=fred_column_names,
+                                                        bea_api=bea_api, bea_column_names=bea_column_names, bea_filter_metrics=bea_filter_metric)
+        monthly_request.process_all_fred_tables(selected_fred_tables)
+        monthly_request.process_all_bea_tables(selected_bea_tables)
+        table_df = monthly_request.merge_dataframes()
+        null_report = monthly_request.generate_null_report(table_df)
+        total_nulls_string = f"Total Null Values: {monthly_request.total_null_count}"
         
         return [
             dmc.Text("Monthly Data", weight=550, size='lg', style={'margin-top': '10px', 'margin-bottom': '10px'}),
+            dmc.Text(total_nulls_string, weight=410, size='sm', className='general-text'),
+            dmc.Text(null_report, weight=410, size='sm', className='general-text'),
             html.Div(
                 dash_table.DataTable(
                     data=table_df.to_dict('records'),

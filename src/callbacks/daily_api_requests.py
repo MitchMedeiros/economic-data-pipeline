@@ -33,23 +33,30 @@ def daily_callback(app):
     )
     def request_and_format_daily_data(n_clicks, start_year, end_year, selected_fred_tables, selected_treasury_tables):
         all_years_string = ','.join(str(year) for year in range(start_year, end_year + 1))
-        all_dfs = []
 
-        # Makes multiple requests for json data from the FRED and Treasury APIs
         fred_api = methods_functions.DataFetcher.fetch_fred_data(selected_fred_tables, start_year, end_year, 'lin', 'd', 'lin')
         treasury_api = methods_functions.DataFetcher.fetch_treasury_data(selected_treasury_tables, all_years_string)
 
-        # Cleans the returned json data and creates DataFrames for them. The methods differ based on the original formatting.
-        for table in selected_fred_tables:
-            fred_df = methods_functions.process_fred_table(fred_api, table, fred_column_names)
-            if fred_df is not None: all_dfs.append(fred_df)
-        for table in selected_treasury_tables:
-            treasury_df = methods_functions.process_treasury_table(treasury_api, table, treasury_columns, treasury_column_names)
-            if treasury_df is not None: all_dfs.append(treasury_df)
+        daily_request = methods_functions.DataCleaner('daily', fred_api=fred_api, fred_column_names=fred_column_names,
+                                                        treasury_api=treasury_api, treasury_column_names=treasury_column_names)
 
-        table_df = all_dfs[0]
-        for i in range(1, len(all_dfs)):
-            table_df = pd.merge(table_df, all_dfs[i], on='date')
+        # all_dfs = []
+
+        # # Makes multiple requests for json data from the FRED and Treasury APIs
+        # fred_api = methods_functions.DataFetcher.fetch_fred_data(selected_fred_tables, start_year, end_year, 'lin', 'd', 'lin')
+        # treasury_api = methods_functions.DataFetcher.fetch_treasury_data(selected_treasury_tables, all_years_string)
+
+        # # Cleans the returned json data and creates DataFrames for them. The methods differ based on the original formatting.
+        # for table in selected_fred_tables:
+        #     fred_df = methods_functions.process_fred_table(fred_api, table, fred_column_names)
+        #     if fred_df is not None: all_dfs.append(fred_df)
+        # for table in selected_treasury_tables:
+        #     treasury_df = methods_functions.process_treasury_table(treasury_api, table, treasury_columns, treasury_column_names)
+        #     if treasury_df is not None: all_dfs.append(treasury_df)
+
+        # table_df = all_dfs[0]
+        # for i in range(1, len(all_dfs)):
+        #     table_df = pd.merge(table_df, all_dfs[i], on='date')
 
         table_df = table_df.replace('.', np.nan)
         col_names = table_df.isnull().sum().index
