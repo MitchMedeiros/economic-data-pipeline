@@ -40,12 +40,12 @@ class DataFetcher:
 
     @staticmethod
     def fetch_fred_data(selected_fred_tables, start_year, end_year, unit, frequency, aggregation):
-        # Monthly data is converted to quarterly data by setting the frequency to 'q' and aggregation method to sum
         fred_start_year = f"{start_year}-01-01"
         fred_end_year = f"{end_year}-01-01"
 
         fred_base_url = "https://api.stlouisfed.org/fred/series/observations"
 
+        # Monthly data is converted to quarterly data by setting the frequency to 'q' and aggregation method to sum
         fred_endpoints = {
             table: (f"?series_id={table}"
                     f"&api_key={my_config.FRED_KEY}"
@@ -55,8 +55,7 @@ class DataFetcher:
                     f"&frequency={frequency}"
                     f"&aggregation_method={aggregation}"
                     "&file_type=json")
-            for table in selected_fred_tables
-        }
+            for table in selected_fred_tables}
 
         fred_api = RestAPI(fred_base_url, fred_endpoints)
         fred_api.fetch_data()

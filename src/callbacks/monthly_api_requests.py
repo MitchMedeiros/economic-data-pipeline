@@ -1,7 +1,4 @@
-from dash import dash_table, html, Input, Output, State
-import dash_mantine_components as dmc
-from dash_iconify import DashIconify
-import pandas as pd
+from dash import Input, Output, State
 
 import src.common.api_callbacks as api_callbacks
 import src.common.component_functions as component_functions
@@ -18,28 +15,24 @@ def monthly_callback(app):
         prevent_initial_call=True
     )
     def request_and_format_monthly_data(n_clicks, start_year, end_year, selected_fred_tables, selected_bea_tables):
-        bea_filter_metrics = {
-            'T20600': "Personal income",
-            'T20807': "Personal consumption expenditures (PCE)",
-            'T20801': "Personal consumption expenditures (PCE)",
-            'T20804': "Personal consumption expenditures (PCE)"
-        }
-
-        bea_column_names = {
-            'T20600': 'Personal Income (Millions $)',
-            'T20807': 'PCE (Monthly Change)',
-            'T20801': 'Real PCE (Monthly Change)',
-            'T20804': "PCEPI"    
-        }
-
         fred_column_names = {
             'CPIAUCSL': {'value': "CPI"},
             'PAYEMS': {'value': 'Nonfarm Payrolls (Thousands of Persons)'},
             'UNRATE': {'value': 'Unemployment Rate'},
-            'CSUSHPINSA': {'value': "Case-Shiller U.S. Home Price Index"}
-        }
+            'CSUSHPINSA': {'value': "Case-Shiller U.S. Home Price Index"}}
+        bea_column_names = {
+            'T20600': 'Personal Income (Millions $)',
+            'T20807': 'PCE (Monthly Change)',
+            'T20801': 'Real PCE (Monthly Change)',
+            'T20804': "PCEPI"}
+        bea_filter_metrics = {
+            'T20600': "Personal income",
+            'T20807': "Personal consumption expenditures (PCE)",
+            'T20801': "Personal consumption expenditures (PCE)",
+            'T20804': "Personal consumption expenditures (PCE)"}
 
         all_years_string = ','.join(str(year) for year in range(start_year, end_year + 1))
+
         fred_api = api_callbacks.DataFetcher.fetch_fred_data(selected_fred_tables, start_year, end_year, 'lin', 'm', 'avg')
         bea_api = api_callbacks.DataFetcher.fetch_bea_data(selected_bea_tables, all_years_string, 'M')
 
