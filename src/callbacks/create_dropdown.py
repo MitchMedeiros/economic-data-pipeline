@@ -1,7 +1,10 @@
 from dash import Input, Output
 import psycopg2
 
-import my_config
+try:
+    import my_config as config
+except ImportError:
+    import config
 
 def table_dropdown_callback(app):
     @app.callback(
@@ -10,7 +13,7 @@ def table_dropdown_callback(app):
         prevent_initial_call=True
     )
     def get_table_names(n_clicks):
-        conn = psycopg2.connect(my_config.DB_CREDENTIALS)
+        conn = psycopg2.connect(config.DB_CREDENTIALS)
 
         query = '''
             SELECT

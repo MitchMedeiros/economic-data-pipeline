@@ -1,4 +1,4 @@
-from dash import clientside_callback, Input, Output, State
+from dash import clientside_callback, Input, Output
 
 # Changes the app theme based on the theme switch position. Initially suppress it to prevent flickering.
 clientside_callback(

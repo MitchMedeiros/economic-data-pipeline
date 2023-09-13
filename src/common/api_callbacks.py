@@ -1,18 +1,23 @@
+from typing import Union, Tuple
+
 from dash_iconify import DashIconify
 import dash_mantine_components as dmc
 import numpy as np
 import pandas as pd
 import requests
 
-import my_config
+try:
+    import my_config as config
+except ImportError:
+    import config
 
 class RestAPI:
-    def __init__(self, base_url, endpoints):
+    def __init__(self, base_url: str, endpoints: dict) -> None:
         self.base_url = base_url
         self.endpoints = endpoints
         self.data = {}
 
-    def fetch_data(self):
+    def fetch_data(self) -> None:
         for table, endpoint in self.endpoints.items():
             url = self.base_url + endpoint
             response = requests.get(url)
@@ -21,16 +26,16 @@ class RestAPI:
 
 class DataFetcher:
     @staticmethod
-    def fetch_bea_data(selected_bea_tables, all_years_string, frequency):
+    def fetch_bea_data(selected_bea_tables: list, all_years: str, frequency: str) -> RestAPI:
         bea_base_url = "https://apps.bea.gov/api/data/"
 
         bea_endpoints = {
-            table: (f"?&UserID={my_config.BEA_KEY}"
+            table: (f"?&UserID={config.BEA_KEY}"
                     "&method=GetData"
                     "&DataSetName=NIPA"
                     f"&Frequency={frequency}"
                     f"&TableName={table}"
-                    f"&Year={all_years_string}")
+                    f"&Year={all_years}")
             for table in selected_bea_tables
         }
 
@@ -39,7 +44,8 @@ class DataFetcher:
         return bea_api
 
     @staticmethod
-    def fetch_fred_data(selected_fred_tables, start_year, end_year, unit, frequency, aggregation):
+    def fetch_fred_data(selected_fred_tables: list, start_year: int, end_year: int, unit: str, frequency: str, aggregation: str
+    ) -> RestAPI:
         fred_start_year = f"{start_year}-01-01"
         fred_end_year = f"{end_year}-01-01"
 
@@ -48,7 +54,7 @@ class DataFetcher:
         # Monthly data is converted to quarterly data by setting the frequency to 'q' and aggregation method to sum
         fred_endpoints = {
             table: (f"?series_id={table}"
-                    f"&api_key={my_config.FRED_KEY}"
+                    f"&api_key={config.FRED_KEY}"
                     f"&observation_start={fred_start_year}"
                     f"&observation_end={fred_end_year}"
                     f"&units={unit}"
@@ -62,11 +68,11 @@ class DataFetcher:
         return fred_api
     
     @staticmethod
-    def fetch_treasury_data(selected_treasury_tables, dates):
+    def fetch_treasury_data(selected_treasury_tables: list, all_years: str) -> RestAPI:
         treasury_base_url = "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/"
 
         treasury_endpoints = {
-            table: f"{table}?&filter=record_fiscal_year:in:({dates})&page[size]=10000" for table in selected_treasury_tables
+            table: f"{table}?&filter=record_fiscal_year:in:({all_years})&page[size]=10000" for table in selected_treasury_tables
         }
 
         treasury_api = RestAPI(treasury_base_url, treasury_endpoints)
@@ -74,21 +80,15 @@ class DataFetcher:
         return treasury_api
 
 class DataCleaner:
-    def __init__(self, time_interval, fred_api=None, fred_column_names=None, bea_api=None, bea_column_names=None,
-                 bea_filter_metrics=None, treasury_api=None, treasury_column_names=None, treasury_columns=None):
+    def __init__(self, time_interval: str) -> None:
         self.time_interval = time_interval
         self.all_dfs = []
         self.total_null_count = 0
+
+    def process_fred_table(self, fred_api: RestAPI, fred_column_names: dict, table: str
+    ) -> Union[pd.DataFrame, Tuple[dmc.Alert, bool]]:
         self.fred_api = fred_api
         self.fred_column_names = fred_column_names
-        self.bea_api = bea_api
-        self.bea_column_names = bea_column_names
-        self.bea_filter_metrics = bea_filter_metrics
-        self.treasury_api = treasury_api
-        self.treasury_column_names = treasury_column_names
-        self.treasury_columns = treasury_columns
-
-    def process_fred_table(self, table):
         try:
             data = self.fred_api.data[table]['observations']
             df = pd.DataFrame(data, columns=['date', 'value']).rename(columns=self.fred_column_names[table])
@@ -107,8 +107,12 @@ class DataCleaner:
                 color='yellow',
                 withCloseButton=True,
             ), False
-        
-    def process_bea_table(self, table):
+
+    def process_bea_table(self, bea_api: RestAPI, bea_column_names: dict, bea_filter_metrics: dict, table: str
+    ) -> Union[pd.DataFrame, Tuple[dmc.Alert, bool]]:
+        self.bea_api = bea_api
+        self.bea_column_names = bea_column_names
+        self.bea_filter_metrics = bea_filter_metrics
         try:
             data = self.bea_api.data[table]['BEAAPI']['Results']['Data']
             df = pd.DataFrame(data, columns=['TimePeriod', 'DataValue', 'METRIC_NAME', 'LineDescription'])
@@ -139,7 +143,11 @@ class DataCleaner:
                 withCloseButton=True,
             ), False
 
-    def process_treasury_table(self, table):
+    def process_treasury_table(self, treasury_api: RestAPI, treasury_column_names: dict, treasury_columns: dict, table: str
+    ) -> Union[pd.DataFrame, Tuple[dmc.Alert, bool]]:
+        self.treasury_api = treasury_api
+        self.treasury_column_names = treasury_column_names
+        self.treasury_columns = treasury_columns
         try:
             data = self.treasury_api.data[table]['data']
             df = pd.DataFrame(data, columns=self.treasury_columns[table]).rename(columns=self.treasury_column_names[table])
@@ -155,28 +163,28 @@ class DataCleaner:
                 withCloseButton=True,
             ), False
 
-    def process_all_fred_tables(self, selected_fred_tables):
+    def process_all_fred_tables(self, selected_fred_tables: list) -> None:
         for table in selected_fred_tables:
             fred_df = self.process_fred_table(table)
 
             if fred_df is not None:
                 self.all_dfs.append(fred_df)
     
-    def process_all_bea_tables(self, selected_bea_tables):
+    def process_all_bea_tables(self, selected_bea_tables: list) -> None:
         for table in selected_bea_tables:
             bea_df = self.process_bea_table(table)
 
             if bea_df is not None:
                 self.all_dfs.append(bea_df)
 
-    def process_all_treasury_tables(self, selected_treasury_tables):
+    def process_all_treasury_tables(self, selected_treasury_tables: list) -> None:
         for table in selected_treasury_tables:
             treasury_df = self.process_treasury_table(table)
 
             if treasury_df is not None:
                 self.all_dfs.append(treasury_df)
 
-    def merge_dataframes(self):
+    def merge_dataframes(self) -> pd.DataFrame:
         merged_df = self.all_dfs[0]
         for i in range(1, len(self.all_dfs)):
             merged_df = pd.merge(merged_df, self.all_dfs[i], on='date')
@@ -184,7 +192,7 @@ class DataCleaner:
             merged_df['date'] = merged_df['date'].astype(str)
         return merged_df
 
-    def generate_null_report(self, df):
+    def generate_null_report(self, df: pd.DataFrame) -> str:
         df = df.replace('.', np.nan)
         column_null_values = df.isnull().sum()
         null_count_per_column = []

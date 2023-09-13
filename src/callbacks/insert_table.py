@@ -3,7 +3,10 @@ import dash_mantine_components as dmc
 import psycopg2
 from psycopg2 import Error, extras
 
-import my_config
+try:
+    import my_config as config
+except ImportError:
+    import config
 
 def insert_table_callback(app):
     @app.callback(
@@ -14,7 +17,7 @@ def insert_table_callback(app):
     )
     def insert_table(n_clicks):
         try:
-            conn = psycopg2.connect(my_config.DB_CREDENTIALS)
+            conn = psycopg2.connect(config.DB_CREDENTIALS)
 
             create_table_query = '''
                 CREATE TABLE
