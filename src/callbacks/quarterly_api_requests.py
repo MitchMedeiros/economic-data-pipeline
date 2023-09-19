@@ -42,16 +42,9 @@ def quarterly_callback(app):
         fred_api = api_callbacks.DataFetcher.fetch_fred_data(selected_fred_tables, start_year, end_year, 'lin', 'q', 'sum')
         bea_api = api_callbacks.DataFetcher.fetch_bea_data(selected_bea_tables, all_years_string, 'Q')
 
-        quarterly_request = api_callbacks.DataCleaner(
-            time_interval='quarterly',
-            fred_api=fred_api,
-            fred_column_names=fred_column_names,
-            bea_api=bea_api,
-            bea_column_names=bea_column_names,
-            bea_filter_metrics=bea_filter_metrics
-        )
-        quarterly_request.process_all_fred_tables(selected_fred_tables)
-        quarterly_request.process_all_bea_tables(selected_bea_tables)
+        quarterly_request = api_callbacks.DataCleaner(time_interval='quarterly')
+        quarterly_request.process_fred_tables(selected_fred_tables, fred_api, fred_column_names)
+        quarterly_request.process_bea_tables(selected_bea_tables, bea_api, bea_column_names,bea_filter_metrics)
         table_df = quarterly_request.merge_dataframes()
         null_report = quarterly_request.generate_null_report(table_df)
         total_nulls_string = f"Total Null Values: {quarterly_request.total_null_count}"

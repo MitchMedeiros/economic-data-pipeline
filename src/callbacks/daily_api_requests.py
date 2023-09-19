@@ -30,16 +30,9 @@ def daily_callback(app):
         fred_api = api_callbacks.DataFetcher.fetch_fred_data(selected_fred_tables, start_year, end_year, 'lin', 'd', 'lin')
         treasury_api = api_callbacks.DataFetcher.fetch_treasury_data(selected_treasury_tables, all_years_string)
 
-        daily_request = api_callbacks.DataCleaner(
-            time_interval='daily',
-            fred_api=fred_api,
-            fred_column_names=fred_column_names,
-            treasury_api=treasury_api,
-            treasury_column_names=treasury_column_names,
-            treasury_columns=treasury_columns
-        )
-        daily_request.process_all_fred_tables(selected_fred_tables)
-        daily_request.process_all_treasury_tables(selected_treasury_tables)
+        daily_request = api_callbacks.DataCleaner(time_interval='daily')
+        daily_request.process_fred_tables(selected_fred_tables, fred_api, fred_column_names)
+        daily_request.process_treasury_tables(selected_treasury_tables, treasury_api, treasury_column_names, treasury_columns)
         table_df = daily_request.merge_dataframes()
         null_report = daily_request.generate_null_report(table_df)
         total_nulls_string = f"Total Null Values: {daily_request.total_null_count}"

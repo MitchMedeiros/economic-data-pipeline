@@ -21,6 +21,7 @@ class RestAPI:
         for table, endpoint in self.endpoints.items():
             url = self.base_url + endpoint
             response = requests.get(url)
+
             if response.status_code == 200: 
                 self.data[table] = response.json()
 
@@ -84,110 +85,105 @@ class DataCleaner:
         self.time_interval = time_interval
         self.all_dfs = []
         self.total_null_count = 0
-
-    def process_fred_table(self, fred_api: RestAPI, fred_column_names: dict, table: str
+        
+    def process_fred_tables(self, selected_fred_tables: list, fred_api: RestAPI, fred_column_names: dict
     ) -> Union[pd.DataFrame, Tuple[dmc.Alert, bool]]:
         self.fred_api = fred_api
         self.fred_column_names = fred_column_names
-        try:
-            data = self.fred_api.data[table]['observations']
-            df = pd.DataFrame(data, columns=['date', 'value']).rename(columns=self.fred_column_names[table])
 
-            if self.time_interval == 'monthly':
-                df['date'] = pd.to_datetime(df['date']).dt.to_period('M')
+        for table in selected_fred_tables:
+            try:
+                data = self.fred_api.data[table]['observations']
+                df = pd.DataFrame(data, columns=['date', 'value']).rename(columns=self.fred_column_names[table])
 
-            if self.time_interval == 'quarterly':
-                df['date'] = pd.to_datetime(df['date'])
-                df['date'] = df['date'].dt.year.astype(str) + 'Q' + df['date'].dt.quarter.astype(str)
-            return df
-        except KeyError:
-            return dmc.Alert(
-                title="Invalid Years: No data is available within the selected years for one of the requested datasets.",
-                icon=DashIconify(icon='mingcute:alert-fill'),
-                color='yellow',
-                withCloseButton=True,
-            ), False
+                if self.time_interval == 'monthly':
+                    df['date'] = pd.to_datetime(df['date']).dt.to_period('M')
 
-    def process_bea_table(self, bea_api: RestAPI, bea_column_names: dict, bea_filter_metrics: dict, table: str
+                elif self.time_interval == 'quarterly':
+                    df['date'] = pd.to_datetime(df['date'])
+                    df['date'] = df['date'].dt.year.astype(str) + 'Q' + df['date'].dt.quarter.astype(str)
+
+                if df is not None:
+                    self.all_dfs.append(df)
+
+            except KeyError:
+                return dmc.Alert(
+                    title="Invalid Years: No data is available within the selected years for one of the requested datasets.",
+                    icon=DashIconify(icon='mingcute:alert-fill'),
+                    color='yellow',
+                    withCloseButton=True,
+                ), False
+
+    def process_bea_tables(self, selected_bea_tables: list, bea_api: RestAPI, bea_column_names: dict, bea_filter_metrics: dict
     ) -> Union[pd.DataFrame, Tuple[dmc.Alert, bool]]:
         self.bea_api = bea_api
         self.bea_column_names = bea_column_names
         self.bea_filter_metrics = bea_filter_metrics
-        try:
-            data = self.bea_api.data[table]['BEAAPI']['Results']['Data']
-            df = pd.DataFrame(data, columns=['TimePeriod', 'DataValue', 'METRIC_NAME', 'LineDescription'])
-            df = df.loc[df['LineDescription'] == self.bea_filter_metrics[table]].drop(columns=['LineDescription'])
 
-            # Pivoting the table to have seperate columns for each distinct calculation method of the general economic metric.
-            sliced_dfs = [
-                df.loc[df['METRIC_NAME'] == metric]
-                .drop(columns=['METRIC_NAME'])
-                .reset_index(drop=True)
-                .rename(columns={'DataValue': f'{self.bea_column_names[table]} - ' + metric})
-                for metric in df['METRIC_NAME'].unique()
-            ]
-            pivoted_df = sliced_dfs[0]
+        for table in selected_bea_tables:
+            try:
+                data = self.bea_api.data[table]['BEAAPI']['Results']['Data']
+                df = pd.DataFrame(data, columns=['TimePeriod', 'DataValue', 'METRIC_NAME', 'LineDescription'])
+                df = df.loc[df['LineDescription'] == self.bea_filter_metrics[table]].drop(columns=['LineDescription'])
 
-            for i in range(1, len(sliced_dfs)):
-                pivoted_df = pd.merge(pivoted_df, sliced_dfs[i], on='TimePeriod')
-            pivoted_df.rename(columns={'TimePeriod': 'date'}, inplace=True)
+                # Pivoting the table to have seperate columns for each distinct calculation method of the general economic metric.
+                sliced_dfs = [
+                    df.loc[df['METRIC_NAME'] == metric]
+                    .drop(columns=['METRIC_NAME'])
+                    .reset_index(drop=True)
+                    .rename(columns={'DataValue': f'{self.bea_column_names[table]} - ' + metric})
+                    for metric in df['METRIC_NAME'].unique()
+                ]
+                pivoted_df = sliced_dfs[0]
 
-            if self.time_interval == 'monthly':
-                pivoted_df['date'] = pd.to_datetime(pivoted_df['date'], format='%YM%m').dt.to_period('M')
-            return pivoted_df
-        except KeyError:
-            return dmc.Alert(
-                title="Invalid Years: No data is available within the selected years for one of the requested datasets.",
-                icon=DashIconify(icon='mingcute:alert-fill'),
-                color='yellow',
-                withCloseButton=True,
-            ), False
+                for i in range(1, len(sliced_dfs)):
+                    pivoted_df = pd.merge(pivoted_df, sliced_dfs[i], on='TimePeriod')
+                pivoted_df.rename(columns={'TimePeriod': 'date'}, inplace=True)
 
-    def process_treasury_table(self, treasury_api: RestAPI, treasury_column_names: dict, treasury_columns: dict, table: str
+                if self.time_interval == 'monthly':
+                    pivoted_df['date'] = pd.to_datetime(pivoted_df['date'], format='%YM%m').dt.to_period('M')
+
+                if df is not None:
+                    self.all_dfs.append(pivoted_df)
+
+            except KeyError:
+                return dmc.Alert(
+                    title="Invalid Years: No data is available within the selected years for one of the requested datasets.",
+                    icon=DashIconify(icon='mingcute:alert-fill'),
+                    color='yellow',
+                    withCloseButton=True,
+                ), False
+
+    def process_treasury_tables(self, selected_treasury_tables: list, treasury_api: RestAPI, treasury_column_names: dict, treasury_columns: dict
     ) -> Union[pd.DataFrame, Tuple[dmc.Alert, bool]]:
         self.treasury_api = treasury_api
         self.treasury_column_names = treasury_column_names
         self.treasury_columns = treasury_columns
-        try:
-            data = self.treasury_api.data[table]['data']
-            df = pd.DataFrame(data, columns=self.treasury_columns[table]).rename(columns=self.treasury_column_names[table])
 
-            if table == 'v1/accounting/dts/dts_table_1':
-                df = df.loc[df['account_type'] == 'Federal Reserve Account'].drop(columns=['account_type']).reset_index(drop=True)
-            return df
-        except KeyError:
-            return dmc.Alert(
-                title="Invalid Years: No data is available within the selected years for one of the requested datasets.",
-                icon=DashIconify(icon='mingcute:alert-fill'),
-                color='yellow',
-                withCloseButton=True,
-            ), False
-
-    def process_all_fred_tables(self, selected_fred_tables: list) -> None:
-        for table in selected_fred_tables:
-            fred_df = self.process_fred_table(table)
-
-            if fred_df is not None:
-                self.all_dfs.append(fred_df)
-    
-    def process_all_bea_tables(self, selected_bea_tables: list) -> None:
-        for table in selected_bea_tables:
-            bea_df = self.process_bea_table(table)
-
-            if bea_df is not None:
-                self.all_dfs.append(bea_df)
-
-    def process_all_treasury_tables(self, selected_treasury_tables: list) -> None:
         for table in selected_treasury_tables:
-            treasury_df = self.process_treasury_table(table)
+            try:
+                data = self.treasury_api.data[table]['data']
+                df = pd.DataFrame(data, columns=self.treasury_columns[table]).rename(columns=self.treasury_column_names[table])
 
-            if treasury_df is not None:
-                self.all_dfs.append(treasury_df)
+                if table == 'v1/accounting/dts/dts_table_1':
+                    df = df.loc[df['account_type'] == 'Federal Reserve Account'].drop(columns=['account_type']).reset_index(drop=True)
+
+                if df is not None:
+                    self.all_dfs.append(df)
+
+            except KeyError:
+                return dmc.Alert(
+                    title="Invalid Years: No data is available within the selected years for one of the requested datasets.",
+                    icon=DashIconify(icon='mingcute:alert-fill'),
+                    color='yellow',
+                    withCloseButton=True,
+                ), False
 
     def merge_dataframes(self) -> pd.DataFrame:
         merged_df = self.all_dfs[0]
         for i in range(1, len(self.all_dfs)):
             merged_df = pd.merge(merged_df, self.all_dfs[i], on='date')
+
         if self.time_interval == 'monthly' or self.time_interval == 'quarterly':
             merged_df['date'] = merged_df['date'].astype(str)
         return merged_df
@@ -196,14 +192,102 @@ class DataCleaner:
         df = df.replace('.', np.nan)
         column_null_values = df.isnull().sum()
         null_count_per_column = []
+
         for column_name, null_count in column_null_values.items():
             if null_count > 0:
                 null_count_per_column.append(f"{column_name}: {null_count}")
 
         null_columns_string = ' | '.join(null_count_per_column)
+
         if len(null_count_per_column) > 0:
             null_columns_string = "Columns with Null Values: " + null_columns_string
 
         self.total_null_count = df.isnull().sum().sum()
             
         return null_columns_string
+    
+
+    # def process_fred_table(self, fred_api: RestAPI, fred_column_names: dict, table: str
+    # ) -> Union[pd.DataFrame, Tuple[dmc.Alert, bool]]:
+    #     self.fred_api = fred_api
+    #     self.fred_column_names = fred_column_names
+
+    #     try:
+    #         data = self.fred_api.data[table]['observations']
+    #         df = pd.DataFrame(data, columns=['date', 'value']).rename(columns=self.fred_column_names[table])
+
+    #         if self.time_interval == 'monthly':
+    #             df['date'] = pd.to_datetime(df['date']).dt.to_period('M')
+
+    #         elif self.time_interval == 'quarterly':
+    #             df['date'] = pd.to_datetime(df['date'])
+    #             df['date'] = df['date'].dt.year.astype(str) + 'Q' + df['date'].dt.quarter.astype(str)
+    #         return df
+
+    #     except KeyError:
+    #         return dmc.Alert(
+    #             title="Invalid Years: No data is available within the selected years for one of the requested datasets.",
+    #             icon=DashIconify(icon='mingcute:alert-fill'),
+    #             color='yellow',
+    #             withCloseButton=True,
+    #         ), False
+
+
+    # def process_bea_table(self, selected_bea_tables: list, bea_api: RestAPI, bea_column_names: dict, bea_filter_metrics: dict, table: str
+    # ) -> Union[pd.DataFrame, Tuple[dmc.Alert, bool]]:
+    #     self.bea_api = bea_api
+    #     self.bea_column_names = bea_column_names
+    #     self.bea_filter_metrics = bea_filter_metrics
+
+    #     try:
+    #         data = self.bea_api.data[table]['BEAAPI']['Results']['Data']
+    #         df = pd.DataFrame(data, columns=['TimePeriod', 'DataValue', 'METRIC_NAME', 'LineDescription'])
+    #         df = df.loc[df['LineDescription'] == self.bea_filter_metrics[table]].drop(columns=['LineDescription'])
+
+    #         # Pivoting the table to have seperate columns for each distinct calculation method of the general economic metric.
+    #         sliced_dfs = [
+    #             df.loc[df['METRIC_NAME'] == metric]
+    #             .drop(columns=['METRIC_NAME'])
+    #             .reset_index(drop=True)
+    #             .rename(columns={'DataValue': f'{self.bea_column_names[table]} - ' + metric})
+    #             for metric in df['METRIC_NAME'].unique()
+    #         ]
+    #         pivoted_df = sliced_dfs[0]
+
+    #         for i in range(1, len(sliced_dfs)):
+    #             pivoted_df = pd.merge(pivoted_df, sliced_dfs[i], on='TimePeriod')
+    #         pivoted_df.rename(columns={'TimePeriod': 'date'}, inplace=True)
+
+    #         if self.time_interval == 'monthly':
+    #             pivoted_df['date'] = pd.to_datetime(pivoted_df['date'], format='%YM%m').dt.to_period('M')
+    #         return pivoted_df
+
+    #     except KeyError:
+    #         return dmc.Alert(
+    #             title="Invalid Years: No data is available within the selected years for one of the requested datasets.",
+    #             icon=DashIconify(icon='mingcute:alert-fill'),
+    #             color='yellow',
+    #             withCloseButton=True,
+    #         ), False
+
+    # def process_treasury_table(self, treasury_api: RestAPI, treasury_column_names: dict, treasury_columns: dict, table: str
+    # ) -> Union[pd.DataFrame, Tuple[dmc.Alert, bool]]:
+    #     self.treasury_api = treasury_api
+    #     self.treasury_column_names = treasury_column_names
+    #     self.treasury_columns = treasury_columns
+
+    #     try:
+    #         data = self.treasury_api.data[table]['data']
+    #         df = pd.DataFrame(data, columns=self.treasury_columns[table]).rename(columns=self.treasury_column_names[table])
+
+    #         if table == 'v1/accounting/dts/dts_table_1':
+    #             df = df.loc[df['account_type'] == 'Federal Reserve Account'].drop(columns=['account_type']).reset_index(drop=True)
+    #         return df
+
+    #     except KeyError:
+    #         return dmc.Alert(
+    #             title="Invalid Years: No data is available within the selected years for one of the requested datasets.",
+    #             icon=DashIconify(icon='mingcute:alert-fill'),
+    #             color='yellow',
+    #             withCloseButton=True,
+    #         ), False
