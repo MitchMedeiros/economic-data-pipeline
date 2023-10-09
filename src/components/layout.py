@@ -159,7 +159,8 @@ accordion = dmc.LoadingOverlay(
                                     ],
                                     direction='horizontal',
                                     gap=3
-                                )
+                                ),
+                                html.Div(id='clean_table_div')
                             ]
                         )
                     ],
