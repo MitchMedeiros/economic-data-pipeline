@@ -7,16 +7,14 @@
 This project is a web app built with Plotly Dash with the intent of being an interactive data pipeline.
 It uses publicly available second-party economic data requested directly through the REST APIs of multiple
 government agencies. These agencies include
-the US Treasury Department, Bureau of Economic Analysis (BEA), the Bureau of Labor Statistics (BLS), and the Federal
-Reserve of St. Louis who maintain the Federal Reserve Economic Data (FRED).
+the US Treasury Department, Bureau of Economic Analysis (BEA), and the Federal Reserve of St. Louis 
+who maintain the Federal Reserve Economic Data (FRED).
 
-The requested data is processed with Polars (a faster, more memory efficient alternative to Pandas) and
-can be checked for cleanliness and reformatted.
-The user can then interact with a PostgreSQL database, where raw SQL statements are executed within the backend
-via psycopg3. They can create a new table to insert the economic data into with the freedom to specify
+The requested data is processed with Polars or Pandas and may be checked for cleanliness and cleaned in several ways.
+The data can then be stored in a PostgreSQL database via raw SQL statements issued through Psycopg. The user can create a new table to insert the economic data into, with the freedom to specify
 certain table conditions, or alternatively insert into an existing table. The user can also interact with
 existing tables, efficiently loading them into DataFrames with ConnectorX, and verifying that they are free
-from duplicate values, NaN values, etc. They can choose to clean the data and rewrite the existing tables' data.
+from duplicate values, null values, etc. They can then choose to clean the data and rewrite the existing tables' data.
 
 <h1>Core Dependencies</h1>
 
@@ -86,7 +84,7 @@ The optional dependencies to extend the functionality of this app are:
 
 <h2>PostgreSQL and Redis Databases</h2>
 
-The app hosted on <a ahref=backtest.fi/data>backtest.fi/data</a> utilizes a postgreSQL and Redis backend. However, the default configuration file when cloning this repository will use Yahoo Finance for data as well as the local file system for caching between Dash callbacks. If you have either or both databases installed you can connect them by simply providing your connection credentials in config.py, located in the parent directory of this repository.
+The app utilizes a postgreSQL and Redis backend. However, the default configuration file when cloning this repository will use Yahoo Finance for data as well as the local file system for caching between Dash callbacks. If you have either or both databases installed you can connect them by simply providing your connection credentials in config.py, located in the parent directory of this repository.
 
 <h2>WSGI Setup for an Apache Server on Linux</h2>
 
