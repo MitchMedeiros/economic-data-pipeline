@@ -17,11 +17,12 @@ duplicates_checkbox = component_functions.checkbox("Duplicate Rows", "duplicates
 
 null_select = component_functions.select(
     [
-        {'label': 'remove the row', 'value': 'none'},
-        {'label': 'average the two adjacent values', 'value': 'two'},
-        {'label': 'average the four adjacent values', 'value': 'four'}
+        {'label': "Average Adjacent Values", 'value': 'average'},
+        {'label': "Forward Fill Values", 'value': 'forward'},
+        {'label': "Backward Fill Values", 'value': 'backwards'},
+        {'label': "Remove Rows", 'value': 'remove'},
     ],
-    'two',
+    'average',
     "How to Handle Null Values",
     'null_select'
 )
